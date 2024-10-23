@@ -21,7 +21,7 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
     <div className="login-page-container">
       <div className="left-section">
         <div className="branding">
-          <h1 className="logo">Family<span className="tree">Tree</span></h1>
+          <div><img src="familytreelogo.png" alt="Tree" className="login-logo" /></div>
           <h2>Connect with family</h2>
           <p>
             Create, manage, and share your family history with ease.

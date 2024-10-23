@@ -28,7 +28,8 @@ const DashboardPage = () => {
   return (
     <div className="dashboard-container">
       <div className="dashboard-sidebar">
-        <div className="dashboard-logo">FamTree</div>
+        <div> <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
+        </div>
         <nav className="dashboard-nav-links">
           <a href="#" className="active">Your Trees</a>
           <a href="#">Saved Trees</a>
