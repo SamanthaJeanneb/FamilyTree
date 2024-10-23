@@ -1,11 +1,33 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { FaBell, FaQuestionCircle } from 'react-icons/fa'; // Icons for notification and help
 import './DashboardPage.css';
 
 const DashboardPage = () => {
+
+  const [isCreatePromptOpen, setCreatePromptOpen] = useState(false);
+  const [treeName, setTreeName] = useState('');
+  const [visibility, setVisibility] = useState('public');
+
+  const openCreatePrompt = () => {
+    setCreatePromptOpen(true);
+  };
+
+  const closeCreatePrompt = () => {
+    setCreatePromptOpen(false);
+  };
+
+  const submit = () => {
+    if (treeName) {
+      console.log(`Tree Name: ${treeName}, Visibility: ${visibility}`);
+      closeCreatePrompt();
+    } else {
+      alert('Please name your tree!')
+    }
+  };
+
   return (
     <div className="dashboard-container">
-      <div className="sidebar">
+      <div className="dashboard-sidebar">
         <div className="dashboard-logo">FamTree</div>
         <nav className="dashboard-nav-links">
           <a href="#" className="active">Your Trees</a>
@@ -35,7 +57,7 @@ const DashboardPage = () => {
           </div>
         </div>
         <div className="tree-grid">
-          <div className="tree-card new-tree">
+          <div className="tree-card new-tree" onClick={openCreatePrompt}>
             <img src="placeholder.png" alt="Tree" className="tree-image" />
             <span className="tree-title">New Tree</span>
           </div>
@@ -56,6 +78,29 @@ const DashboardPage = () => {
             <span className="tree-title">Family Tree</span>
           </div>
         </div>
+
+        {isCreatePromptOpen && (
+                  <div className="create-prompt">
+                    <div className="create-prompt-content">
+                      <h2>Add New Tree</h2>
+                      <label htmlFor="tree-name">Tree Name...</label>
+                      <input type="text" id="tree-name" value={treeName} 
+                      onChange={(e) => setTreeName(e.target.value)}
+                      required/>
+                      <br />
+                      <select
+                        id="visibility"
+                        value={visibility}
+                        onChange={(e) => setVisibility(e.target.value)}>
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                      </select>
+                      <br />
+                      <button onClick={submit}>Submit</button>
+                      <button onClick={closeCreatePrompt}>Close</button>
+                    </div>
+                  </div>
+                )}
       </div>
     </div>
   );

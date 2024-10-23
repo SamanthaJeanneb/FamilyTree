@@ -6,7 +6,7 @@
     font-family: Arial, sans-serif;
   }
   
-  .sidebar {
+  .dashboard-sidebar {
     width: 250px;
     background-color: #f4f4f4;
     padding: 20px;
@@ -130,5 +130,25 @@
     margin-top: 10px;
     font-size: 16px;
     color: #333;
+  }
+
+  .create-prompt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .create-prompt-content {
+    background: rgb(6, 104, 14);
+    padding: 20px;
+    border-radius: 5px;
+    width: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
