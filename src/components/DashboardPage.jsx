@@ -128,8 +128,8 @@ const DashboardPage = () => {
           </label>
 
               <br/><br/>
-              <button onClick={closeCreatePrompt}>Close</button>
-              <button onClick={submit}>Submit</button>
+              <button className="cancel-button" onClick={closeCreatePrompt}>Close</button>
+              <button className="submit-button" onClick={submit}>Submit</button>
             </div>
           </div>
         )}

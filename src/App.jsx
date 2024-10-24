@@ -7,6 +7,7 @@ import GuestDashboardPage from "./components/GuestDashboardPage";
 import FamilyTreePage from "./components/FamilyTreePage";
 import LoginPage from "./components/LoginPage";
 import './App.css';
+import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false); //google auth
