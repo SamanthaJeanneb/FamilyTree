@@ -139,17 +139,34 @@
     left: 0;
     right: 0;
     bottom: 0;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
   }
-  
+
   .create-prompt-content {
-    background: rgb(6, 104, 14);
-    padding: 20px;
-    border-radius: 5px;
-    width: 300px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: rgb(56, 133, 45);
+    padding: 1.5%; 
+    border-radius: 3%; 
+    width: 40%;
+    height: 25%; 
+    box-shadow: 7px 5px 5px rgba(0, 0, 0, 0.2);
+}
+
+  #tree-name {
+    text-align: center;
+    width: 80%;
+    height: 10%;
+    color: black;
+    background-color: white;
+    border-radius: 10% / 100%;
+    border-color: white;
+    padding: 0 / 2%;
   }
+
+  #tree-name::placeholder {
+    text-align: center;
+  }
+
   

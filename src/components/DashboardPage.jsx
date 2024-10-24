@@ -16,6 +16,8 @@ const DashboardPage = () => {
 
   const closeCreatePrompt = () => {
     setCreatePromptOpen(false);
+    setTreeName('');
+    setVisibility('public');
   };
 
   // Submit function for creating a new tree and navigating to TreePage
@@ -90,27 +92,44 @@ const DashboardPage = () => {
         {isCreatePromptOpen && (
           <div className="create-prompt">
             <div className="create-prompt-content">
+
               <h2>Add New Tree</h2>
-              <label htmlFor="tree-name">Tree Name...</label>
               <input
                 type="text"
                 id="tree-name"
+                placeholder="Tree Name..."
                 value={treeName}
                 onChange={(e) => setTreeName(e.target.value)}
                 required
               />
-              <br />
-              <select
+
+              <br/><br/>
+
+          <label>
+              <input
+                type="radio"
                 id="visibility"
-                value={visibility}
+                value="public"
+                checked={visibility === 'public'}
                 onChange={(e) => setVisibility(e.target.value)}
-              >
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
-              <br />
-              <button onClick={submit}>Submit</button>
+              />
+              <span className="circle"></span> Public
+
+              <br/>
+
+              <input
+                type="radio"
+                id="visibility"
+                value="private"
+                checked={visibility === 'private'}
+                onChange={(e) => setVisibility(e.target.value)}
+              />
+              <span className="circle"></span> Private
+          </label>
+
+              <br/><br/>
               <button onClick={closeCreatePrompt}>Close</button>
+              <button onClick={submit}>Submit</button>
             </div>
           </div>
         )}
