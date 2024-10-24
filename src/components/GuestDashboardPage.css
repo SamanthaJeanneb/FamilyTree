@@ -15,6 +15,8 @@
     display: flex;
     flex-direction: column;
     height: 100vh; /* Ensure sidebar takes full height */
+    margin-left: 2px;
+    text-align: left;
   }
   
   .logo {
@@ -41,11 +43,24 @@
   .nav-links a.active {
     background-color: #34c759;
     color: white;
+    text-align: center;
   }
-  
+
+
+  .tree-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+  }
+
+  .star-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+  }
+
   .recent-trees h4 {
     margin-top: 20px;
     margin-bottom: 5px;
+    color: black;
   }
   
   .recent-trees a {
@@ -54,12 +69,22 @@
     display: block;
     margin: 5px 0;
   }
+  hr {
+    height: 2px;
+    background-color: black;
+    border: none;
+  }
+
+  .trash-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+  }
   
   /* Main content */
   .guest-main-content {
     margin: 0;
     flex-grow: 1; /* Take up the remaining width after the sidebar */
-    background-color: #a5d6a7; /* Background color similar to your screenshot */
+    background: linear-gradient(#a5d6a7, #34c759); /* Little gradient for funsies */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -97,9 +122,10 @@
   }
   
   .search-section h1 {
-    font-size: 36px;
+    font-size: 42px;
     color: white;
     margin-bottom: 20px;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
   }
   
   .search-bar {
@@ -119,8 +145,10 @@
     padding: 10px 20px;
     width: 100%;
     font-size: 16px;
+    color: rgb(95, 89, 89);
     border-radius: 50px 0 0 50px;
     outline: none;
+    background-color: transparent;
   }
   
   .search-bar button {
@@ -132,5 +160,6 @@
   
   .search-icon {
     padding-right: 10px;
+    color: rgb(95, 89, 89);
   }
   

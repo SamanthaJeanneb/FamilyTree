@@ -2,6 +2,10 @@ import React from 'react';
 import { FaSearch } from 'react-icons/fa'; // For the search icon
 import { GoogleLogin } from '@react-oauth/google'; // Assuming you're using Google OAuth
 import './GuestDashboardPage.css'; // Add custom styles
+import { Trash } from 'lucide-react';
+import { Star } from 'lucide-react';
+import { Network } from 'lucide-react';
+import { PanelsTopLeft } from 'lucide-react';
 
 const GuestDashboardPage = () => {
   const handleGoogleLoginSuccess = (response) => {
@@ -18,17 +22,26 @@ const GuestDashboardPage = () => {
       <div className="sidebar">
         <div className="logo">FamTree</div>
         <nav className="nav-links">
-          <a href="#" className="active">Search Public Trees</a>
-          <a href="#">Your Trees</a>
-          <a href="#">Saved Trees</a>
-          <a href="#">Collaborator Trees</a>
+          <a href="#" className="active">Search Public Trees</a> 
+          <a className="tree-icon">
+          <Network />
+          <a href="#">Your Trees</a> </a>
+          <a className="star-icon">
+          <Star />
+          <a href="#">Saved Trees</a> </a>
+          <a className="collabPage-icon">
+          <PanelsTopLeft />
+          <a href="#">Collaborator Trees</a> </a>
           <div className="recent-trees">
             <h4>Recent</h4>
             <a href="#">Tree 1</a>
             <a href="#">Tree 2</a>
             <a href="#">Tree 3</a>
           </div>
-          <a href="#">Trash</a>
+          <hr></hr>
+          <a className="trash-icon">
+            <Trash />
+          <a href="#">Trash</a> </a>
         </nav>
       </div>
       <div className="guest-main-content">

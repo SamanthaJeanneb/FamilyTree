@@ -1,4 +1,5 @@
 // App.jsx
+import "./../node_modules/bootstrap/dist/css/bootstrap.min.css"
 import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
