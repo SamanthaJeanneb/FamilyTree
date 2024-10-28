@@ -7,7 +7,7 @@ const AccountPage = () => {
   const userData = {
     name: 'Person Name',
     email: 'person.name@gmail.com',
-    profilePicture: 'profile-placeholder.png',
+    profilePicture: '/profile-placeholder.png',
   };
 
   return (
