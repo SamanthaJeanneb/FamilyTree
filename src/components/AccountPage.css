@@ -1,4 +1,3 @@
-/* AccountPage.css */
 .account-container {
     display: flex;
     align-items: center;
@@ -39,6 +38,6 @@
   }
   
   .account-card .btn-primary:hover {
-    background-color: #0056b3;
+    background-color: #239740;
   }
   
