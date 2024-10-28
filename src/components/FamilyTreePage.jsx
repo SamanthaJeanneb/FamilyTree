@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
 import { FaBell, FaInfoCircle } from 'react-icons/fa';
+import { useParams } from 'react-router-dom'; // Import useParams
 import './FamilyTreePage.css';
 
-const FamilyTreePage = ({ treeName, numberOfPeople }) => {
+const FamilyTreePage = ({ numberOfPeople }) => {
+  const { treeName } = useParams(); // Retrieve treeName from URL
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   return (
     <div className="tree-page-container">
       {/* First header */}
       <div className="tree-page-header">
-        <h1>Family Tree | {treeName}</h1>
+        <h1>
+          <img src="/familytreelogo.png" alt="Tree" /> | {treeName}
+        </h1>
         <div className="user-info">
           <span>Person Name</span>
           <button className="icon-button">

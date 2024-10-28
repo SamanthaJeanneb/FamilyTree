@@ -1,41 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBell, FaQuestionCircle } from 'react-icons/fa'; // Icons for notification and help
+import { FaBell, FaQuestionCircle } from 'react-icons/fa';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
   const [isCreatePromptOpen, setCreatePromptOpen] = useState(false);
   const [treeName, setTreeName] = useState('');
   const [visibility, setVisibility] = useState('public');
-  
-  const navigate = useNavigate(); // React Router's hook for navigation
+  const navigate = useNavigate();
 
-  const openCreatePrompt = () => {
-    setCreatePromptOpen(true);
-  };
-
+  const openCreatePrompt = () => setCreatePromptOpen(true);
   const closeCreatePrompt = () => {
     setCreatePromptOpen(false);
     setTreeName('');
     setVisibility('public');
   };
 
-  // Submit function for creating a new tree and navigating to TreePage
   const submit = () => {
     if (treeName) {
       console.log(`Tree Name: ${treeName}, Visibility: ${visibility}`);
       closeCreatePrompt();
-      // Redirect to the TreePage with the new tree's name
       navigate(`/tree/${treeName}`);
     } else {
       alert('Please name your tree!');
     }
   };
 
-  // Function to navigate to an existing tree visualization
-  const openTree = (treeName) => {
-    navigate(`/tree/${treeName}`);
-  };
+  const openTree = (treeName) => navigate(`/tree/${treeName}`);
 
   return (
     <div className="dashboard-container">
@@ -62,37 +54,59 @@ const DashboardPage = () => {
           <h1>Your Trees</h1>
           <div className="user-info">
             <button className="icon-button">
-              <FaBell /> {/* Notification Icon */}
+              <FaBell />
             </button>
             <button className="icon-button">
-              <FaQuestionCircle /> {/* Help Icon */}
+              <FaQuestionCircle />
             </button>
-            <button className="person-name">Person Name</button>
+            <button
+              className="person-name"
+              onClick={() => navigate('/account')}
+            >
+              Person Name
+            </button>
           </div>
         </div>
-        <div className="tree-grid">
-          <div className="tree-card new-tree" onClick={openCreatePrompt}>
-            <img src="placeholder.png" alt="Tree" className="tree-image" />
-            <span className="tree-title">New Tree</span>
+        
+        {/* Bootstrap Cards with Hover Effects */}
+        <div className="row">
+          <div className="col-md-3 mb-4">
+            <div className="card tree-card" onClick={openCreatePrompt}>
+              <img src="placeholder.png" className="card-img-top tree-image" alt="New Tree" />
+              <div className="card-body text-center">
+                <h5 className="card-title tree-title">New Tree</h5>
+              </div>
+            </div>
           </div>
-          <div className="tree-card" onClick={() => openTree('Donald Duck Tree')}>
-            <img src="placeholder.png" alt="Tree" className="tree-image" />
-            <span className="tree-title">Donald Duck Tree</span>
+          <div className="col-md-3 mb-4">
+            <div className="card tree-card" onClick={() => openTree('Donald Duck Tree')}>
+              <img src="placeholder.png" className="card-img-top tree-image" alt="Donald Duck Tree" />
+              <div className="card-body text-center">
+                <h5 className="card-title tree-title">Donald Duck Tree</h5>
+              </div>
+            </div>
           </div>
-          <div className="tree-card" onClick={() => openTree('Duck Dynasty Tree')}>
-            <img src="placeholder.png" alt="Tree" className="tree-image" />
-            <span className="tree-title">Duck Dynasty Tree</span>
+          <div className="col-md-3 mb-4">
+            <div className="card tree-card" onClick={() => openTree('Duck Dynasty Tree')}>
+              <img src="placeholder.png" className="card-img-top tree-image" alt="Duck Dynasty Tree" />
+              <div className="card-body text-center">
+                <h5 className="card-title tree-title">Duck Dynasty Tree</h5>
+              </div>
+            </div>
           </div>
-          <div className="tree-card" onClick={() => openTree('Family Tree')}>
-            <img src="placeholder.png" alt="Tree" className="tree-image" />
-            <span className="tree-title">Family Tree</span>
+          <div className="col-md-3 mb-4">
+            <div className="card tree-card" onClick={() => openTree('Family Tree')}>
+              <img src="placeholder.png" className="card-img-top tree-image" alt="Family Tree" />
+              <div className="card-body text-center">
+                <h5 className="card-title tree-title">Family Tree</h5>
+              </div>
+            </div>
           </div>
         </div>
 
         {isCreatePromptOpen && (
           <div className="create-prompt">
             <div className="create-prompt-content">
-
               <h2>Add New Tree</h2>
               <input
                 type="text"
@@ -102,32 +116,27 @@ const DashboardPage = () => {
                 onChange={(e) => setTreeName(e.target.value)}
                 required
               />
-
-              <br/><br/>
-
-          <label>
-              <input
-                type="radio"
-                id="visibility"
-                value="public"
-                checked={visibility === 'public'}
-                onChange={(e) => setVisibility(e.target.value)}
-              />
-              <span className="circle"></span> Public
-
-              <br/>
-
-              <input
-                type="radio"
-                id="visibility"
-                value="private"
-                checked={visibility === 'private'}
-                onChange={(e) => setVisibility(e.target.value)}
-              />
-              <span className="circle"></span> Private
-          </label>
-
-              <br/><br/>
+              <br /><br />
+              <label>
+                <input
+                  type="radio"
+                  id="visibility"
+                  value="public"
+                  checked={visibility === 'public'}
+                  onChange={(e) => setVisibility(e.target.value)}
+                />
+                <span className="circle"></span> Public
+                <br />
+                <input
+                  type="radio"
+                  id="visibility"
+                  value="private"
+                  checked={visibility === 'private'}
+                  onChange={(e) => setVisibility(e.target.value)}
+                />
+                <span className="circle"></span> Private
+              </label>
+              <br /><br />
               <button className="cancel-button" onClick={closeCreatePrompt}>Close</button>
               <button className="submit-button" onClick={submit}>Submit</button>
             </div>

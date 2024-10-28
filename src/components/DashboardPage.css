@@ -114,25 +114,38 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add drop shadow */
   transition: all 0.3s ease; 
 }
+/* Hover effects for Bootstrap tree cards */
+.tree-card {
+  background-color: #f4f4f4;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Initial shadow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+  cursor: pointer;
+}
 
 .tree-card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Larger shadow on hover */
+  transform: scale(1.02); 
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Image styling */
 .tree-image {
-  height: 28vh; 
-  width: 15vw; 
-  margin-bottom: 10px;
-  object-fit: cover; 
+  object-fit: cover;
+  transition: transform 0.3s ease; /* Smooth transition for image */
 }
 
-/* Title styling */
+.tree-card:hover .tree-image {
+  transform: scale(1.02); /* Scale image on hover */
+}
+
+/* Title Styling */
 .tree-title {
   margin-top: 10px;
   font-size: 16px;
   color: #333;
 }
+
 
 .create-prompt {
   position: fixed;

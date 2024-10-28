@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 10px 10px 0px 10px;
   background-color: white;
   border-bottom: 2px solid #e0e0e0;
 }
@@ -20,7 +20,13 @@
   font-size: 24px;
   color: #34c759;
 }
+.tree-page-header img {
+  height: 7vh; 
+  width: 8vw; 
+  object-fit: cover; 
+  padding-bottom: 6px;
 
+}
 .user-info {
   display: flex;
   align-items: center;

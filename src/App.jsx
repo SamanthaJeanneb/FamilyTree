@@ -1,5 +1,3 @@
-// App.jsx
-import "./../node_modules/bootstrap/dist/css/bootstrap.min.css"
 import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -8,6 +6,7 @@ import DashboardPage from "./components/DashboardPage";
 import GuestDashboardPage from "./components/GuestDashboardPage";
 import FamilyTreePage from "./components/FamilyTreePage";
 import LoginPage from "./components/LoginPage";
+import AccountPage from "./components/AccountPage"; // Import AccountPage
 import './App.css';
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
@@ -20,7 +19,6 @@ const App = () => {
       <Router>
         <div className="app-container">
           <Routes>
-            {}
             <Route
               path="/"
               element={!isAuthenticated && !isGuest ? (
@@ -32,17 +30,16 @@ const App = () => {
               )}
             />
             
-            {}
             <Route path="/dashboard" element={<DashboardPage />} />
 
-            {}
             <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
 
-            {}
-            <Route path="/tree/:treeName" element={<FamilyTreePage />} /> {}
+            <Route path="/tree/:treeName" element={<FamilyTreePage />} />
 
-            {}
             <Route path="/home" element={<HomePage />} />
+
+            {/* New Account Page Route */}
+            <Route path="/account" element={<AccountPage />} />
           </Routes>
         </div>
       </Router>
