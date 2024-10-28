@@ -1,16 +1,15 @@
 import React from 'react';
 import { FaSearch } from 'react-icons/fa'; // For the search icon
-import { GoogleLogin } from '@react-oauth/google'; // Assuming you're using Google OAuth
+import { GoogleLogin } from '@react-oauth/google'; 
 import './GuestDashboardPage.css'; // Add custom styles
 import { Trash } from 'lucide-react';
 import { Star } from 'lucide-react';
 import { Network } from 'lucide-react';
 import { PanelsTopLeft } from 'lucide-react';
-
-const GuestDashboardPage = () => {
+const GuestDashboardPage = ({ setIsAuthenticated }) => {
   const handleGoogleLoginSuccess = (response) => {
     console.log('Google Login Success:', response);
-    // Handle successful login
+    setIsAuthenticated(true);
   };
 
   const handleGoogleLoginFailure = (error) => {
@@ -20,8 +19,8 @@ const GuestDashboardPage = () => {
   return (
     <div className="guest-dashboard-container">
       <div className="sidebar">
-        <div className="logo">FamTree</div>
-        <nav className="nav-links">
+      <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
+      <nav className="nav-links">
           <a href="#" className="active">Search Public Trees</a> 
           <a className="tree-icon">
           <Network />

@@ -1,4 +1,3 @@
-// components/LoginPage.jsx
 import React from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import './LoginPage.css';
@@ -33,13 +32,15 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
       <div className="right-section">
         <div className="login-box">
           <h2>Sign in</h2>
-          <GoogleLogin
-            onSuccess={handleGoogleLoginSuccess}
-            onError={handleGoogleLoginFailure}
-            text="signin_with"
-            width="300"
-          />
-          <button className="guest-mode-button" onClick={handleGuestLogin}> Guest Mode
+          <div className="google-login-button">
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginFailure}
+              text="signin_with"
+            />
+          </div>
+          <button className="guest-mode-button" onClick={handleGuestLogin}>
+            Guest Mode
           </button>
         </div>
       </div>
