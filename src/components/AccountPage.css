@@ -34,7 +34,7 @@
     background-color: #34c759;
     border: none;
     font-weight: bold;
-    margin-top: 1.5rem;
+    margin: 1.5rem 3rem 1.5rem 3rem;
   }
   
   .account-card .btn-primary:hover {
