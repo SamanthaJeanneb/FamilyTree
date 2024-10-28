@@ -53,8 +53,8 @@ const FamilyTreePage = ({ numberOfPeople }) => {
       </div>
 
       {isModalOpen && (
-        <div className="d-flex justify-content-center align-items-center" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', zIndex: 1000 }}>
-          <div className="modal-content p-4" style={{ width: '30%', height: '30%', backgroundColor: '#34c759', borderRadius: '3%', boxShadow: '7px 5px 5px rgba(0, 0, 0, 0.2)' }}>
+        <div className="d-flex justify-content-center align-items-center" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1000 }}>
+          <div className="modal-content p-4" style={{ width: '400px', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}>
             <h2 className="text-center">Add New Individual</h2>
             <form className="add-person-form">
               <div className="form-group">

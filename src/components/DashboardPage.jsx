@@ -71,9 +71,7 @@ const DashboardPage = () => {
     </nav>
   </div>
 
-      {/* Main Content Area */}
       <div className="main-content w-100" style={{ marginLeft: '200px' }}>
-        {/* Navbar */}
         <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
           <div className="container-fluid">
           <h1 style={{ fontSize: '2rem', fontWeight: 'bold',   color: 'rgb(73, 73, 73)' }}>Your Trees</h1>
@@ -102,14 +100,6 @@ const DashboardPage = () => {
                 <img src="placeholder.png" className="card-img-top tree-image" alt="New Tree" />
                 <div className="card-body text-center">
                   <h5 className="card-title tree-title">New Tree</h5>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3 mb-4">
-              <div className="card tree-card" onClick={() => openTree('Donald Duck Tree')}>
-                <img src="placeholder.png" className="card-img-top tree-image" alt="Donald Duck Tree" />
-                <div className="card-body text-center">
-                  <h5 className="card-title tree-title">Donald Duck Tree</h5>
                 </div>
               </div>
             </div>
