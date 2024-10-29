@@ -21,10 +21,15 @@
 }
 
 .tree-background {
-  height: 12vh; 
-  width: 14vw; 
-  transform: rotate(90deg);
-  opacity: .6;
+  position: absolute;
+  height: 150%;
+  width: 150%;
+  object-fit: cover;
+  transform: rotate(-45deg);
+  opacity: .2;
+  top: -2%;
+  left: -2%;
+
 }
 
 .right-section {
@@ -35,6 +40,7 @@
   align-items: center;
   padding: 40px;
   position: relative;
+  overflow: hidden; /* ensures that the tree doesn't extend page */
 }
 
 .branding {
@@ -61,6 +67,10 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 300px;
+  position: absolute;
+  top: 50%;
+  left:50%;
+  transform: translate(-50%, -50%);
 }
 
 .login-box h2 {

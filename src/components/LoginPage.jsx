@@ -2,6 +2,7 @@ import React from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import './LoginPage.css';
 
+
 const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
   const handleGoogleLoginSuccess = (response) => {
     console.log('Google Login Success:', response);
