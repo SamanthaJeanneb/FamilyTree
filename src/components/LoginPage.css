@@ -20,6 +20,13 @@
   width: 14vw; 
 }
 
+.tree-background {
+  height: 12vh; 
+  width: 14vw; 
+  transform: rotate(90deg);
+  opacity: .6;
+}
+
 .right-section {
   flex: 1;
   background-color: #34c759; /* Bright green background */

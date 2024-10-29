@@ -30,6 +30,7 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
         </div>
       </div>
       <div className="right-section">
+      <div><img src="treebackground.png" alt="Tree Background" className="tree-background" /></div>
         <div className="login-box">
           <h2>Sign in</h2>
           <div className="google-login-button">
