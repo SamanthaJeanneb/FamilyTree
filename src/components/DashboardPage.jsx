@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell, FaQuestionCircle } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,12 +7,21 @@ import { Trash } from 'lucide-react';
 import { Star } from 'lucide-react';
 import { Network } from 'lucide-react';
 import { PanelsTopLeft } from 'lucide-react';
+import axios from "axios";
 
-const DashboardPage = () => {
+const DashboardPage = ({ isAuthenticated, user}) => {
   const [isCreatePromptOpen, setCreatePromptOpen] = useState(false);
   const [treeName, setTreeName] = useState('');
   const [visibility, setVisibility] = useState('public');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if(!isAuthenticated){
+      console.error("User not authenticated");
+      navigate('/');
+    }
+  }, []);
+
 
   const openCreatePrompt = () => setCreatePromptOpen(true);
   const closeCreatePrompt = () => {
@@ -32,6 +41,8 @@ const DashboardPage = () => {
   };
 
   const openTree = (treeName) => navigate(`/tree/${treeName}`);
+  if (!user) return <p>Loading...</p>;
+
 
   return (
 <div className="dashboard-container d-flex">
@@ -86,7 +97,7 @@ const DashboardPage = () => {
                 className="btn btn-link person-name"
                 onClick={() => navigate('/account')}
               >
-                Person Name
+                {user.name}
               </button>
             </div>
           </div>

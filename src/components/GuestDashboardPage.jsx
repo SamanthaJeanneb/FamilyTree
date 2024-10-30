@@ -7,19 +7,15 @@ import { Star } from 'lucide-react';
 import { Network } from 'lucide-react';
 import { PanelsTopLeft } from 'lucide-react';
 const GuestDashboardPage = ({ setIsAuthenticated }) => {
-  const handleGoogleLoginSuccess = (response) => {
-    console.log('Google Login Success:', response);
-    setIsAuthenticated(true);
-  };
+    const handleGoogleLogin = () => {
+        // Redirect to the backend Google OAuth2 authorization endpoint
+        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    };
 
-  const handleGoogleLoginFailure = (error) => {
-    console.error('Google Login Failure:', error);
-  };
-
-  return (
+    return (
     <div className="guest-dashboard-container">
       <div className="sidebar">
-      <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
+      <img src="/familytreelogo.png" alt="Tree" className="dashboard-logo" />
       <nav className="nav-links">
           <a href="#" className="active">Search Public Trees</a> 
           <a className="tree-icon">
@@ -44,22 +40,25 @@ const GuestDashboardPage = ({ setIsAuthenticated }) => {
         </nav>
       </div>
       <div className="guest-main-content">
-        <div className="top-bar">
-          <GoogleLogin
-            onSuccess={handleGoogleLoginSuccess}
-            onError={handleGoogleLoginFailure}
-            text="signin_with"
-            width="200"
-            className="google-signin-button"
-          />
-        </div>
-        <div><img src="treebackground.png" alt="Tree Background" className="tree-background2" /></div>
-        <div className="search-section">
-          <h1>Search Public Trees</h1>
-          <div className="search-bar">
-            <input type="text" placeholder="Search for family trees" />
-            <button className="search-icon">
-              <FaSearch />
+          <div className="top-bar">
+              <div className="google-login-button">
+                  <button onClick={handleGoogleLogin} className="google-login-button">
+                      <img
+                          src="/google.png"
+                          alt="Google logo"
+                          className="google-logo"
+                      />
+                      Sign in with Google
+                  </button>
+              </div>
+          </div>
+          <div><img src="/treebackground.png" alt="Tree Background" className="tree-background2"/></div>
+          <div className="search-section">
+              <h1>Search Public Trees</h1>
+              <div className="search-bar">
+                  <input type="text" placeholder="Search for family trees"/>
+                  <button className="search-icon">
+                  <FaSearch />
             </button>
           </div>
         </div>

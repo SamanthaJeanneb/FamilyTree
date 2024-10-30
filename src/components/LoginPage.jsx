@@ -4,13 +4,9 @@ import './LoginPage.css';
 
 
 const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
-  const handleGoogleLoginSuccess = (response) => {
-    console.log('Google Login Success:', response);
-    setIsAuthenticated(true);
-  };
-
-  const handleGoogleLoginFailure = (error) => {
-    console.error('Google Login Failure:', error);
+  const handleGoogleLogin = () => {
+    // Redirect to the backend Google OAuth2 authorization endpoint
+    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   };
 
   const handleGuestLogin = () => {
@@ -21,7 +17,7 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
     <div className="login-page-container">
       <div className="left-section">
         <div className="branding">
-          <div><img src="familytreelogo.png" alt="Tree" className="login-logo" /></div>
+          <div><img src="/familytreelogo.png" alt="Tree" className="login-logo" /></div>
           <h2>Connect with family</h2>
           <p>
             Create, manage, and share your family history with ease.
@@ -31,15 +27,18 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
         </div>
       </div>
       <div className="right-section">
-      <div><img src="treebackground.png" alt="Tree Background" className="tree-background" /></div>
+      <div><img src="/treebackground.png" alt="Tree Background" className="tree-background" /></div>
         <div className="login-box">
           <h2>Sign in</h2>
           <div className="google-login-button">
-            <GoogleLogin
-              onSuccess={handleGoogleLoginSuccess}
-              onError={handleGoogleLoginFailure}
-              text="signin_with"
-            />
+            <button onClick={handleGoogleLogin} className="google-login-button">
+              <img
+                src="/google.png"
+                alt="Google logo"
+                className="google-logo"
+              />
+              Sign in with Google
+            </button>
           </div>
           <button className="guest-mode-button" onClick={handleGuestLogin}>
             Guest Mode
