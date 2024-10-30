@@ -53,6 +53,7 @@ const GuestDashboardPage = ({ setIsAuthenticated }) => {
             className="google-signin-button"
           />
         </div>
+        <div><img src="treebackground.png" alt="Tree Background" className="tree-background2" /></div>
         <div className="search-section">
           <h1>Search Public Trees</h1>
           <div className="search-bar">

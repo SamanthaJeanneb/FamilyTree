@@ -69,6 +69,7 @@
     display: block;
     margin: 5px 0;
   }
+
   hr {
     height: 2px;
     background-color: black;
@@ -91,6 +92,7 @@
     align-items: center;
     position: relative;
     height: 100vh; /* Full height for the main content */
+    overflow: hidden;
   }
   
   .top-bar {
@@ -114,6 +116,17 @@
   
   .google-signin-button:hover {
     background-color: #357ae8;
+  }
+
+  .tree-background2 {
+    position: absolute;
+    height: auto;
+    width: 125%;
+    object-fit:fill;
+    transform: rotate(-45deg);
+    opacity: .2;
+    top: 25%;
+    left: 35%;
   }
   
   /* Search Section */
