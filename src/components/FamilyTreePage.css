@@ -1,4 +1,3 @@
-/* Tree Page Layout */
 .tree-page-container {
   height: 100vh;
   width: 100vw;
@@ -151,7 +150,6 @@
   margin-top: 10px;
   font-size: 16px;
 }
-
 
 
 .btn-secondary {

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { FaBell, FaInfoCircle, FaQuestionCircle } from 'react-icons/fa';
-import { useParams, useNavigate } from 'react-router-dom'; 
+import React, { useState, useEffect, useRef } from 'react';
+import FamilyTree from '@balkangraph/familytree.js';
+import { FaBell, FaQuestionCircle } from 'react-icons/fa';
+import { useParams, useNavigate } from 'react-router-dom';
 import './FamilyTreePage.css';
 
 const FamilyTreePage = ({ numberOfPeople }) => {
-  const { treeName } = useParams(); 
-  const navigate = useNavigate(); 
+  const { treeName } = useParams();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [individuals, setIndividuals] = useState([]);
   const [newPerson, setNewPerson] = useState({
@@ -13,11 +14,32 @@ const FamilyTreePage = ({ numberOfPeople }) => {
     sex: '',
     birthdate: ''
   });
+  const treeRef = useRef(null);
+  const familyTreeInstance = useRef(null);
 
   useEffect(() => {
     const storedIndividuals = JSON.parse(localStorage.getItem('individuals')) || [];
     setIndividuals(storedIndividuals);
+
+    if (treeRef.current && !familyTreeInstance.current) {
+      familyTreeInstance.current = new FamilyTree(treeRef.current, {
+        nodes: storedIndividuals,
+        template: "hugo",
+        nodeBinding: {
+          field_0: "name",
+          field_1: "birthdate",
+        },
+        nodeTreeMenu: true,
+        search: true, // Enable the built-in search in the FamilyTree display
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    if (familyTreeInstance.current) {
+      familyTreeInstance.current.load(individuals);
+    }
+  }, [individuals]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -32,17 +54,14 @@ const FamilyTreePage = ({ numberOfPeople }) => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    const updatedIndividuals = [...individuals, newPerson];
+    const newId = (individuals.length + 1).toString();
+    const updatedPerson = { ...newPerson, id: newId };
+
+    const updatedIndividuals = [...individuals, updatedPerson];
     setIndividuals(updatedIndividuals);
     localStorage.setItem('individuals', JSON.stringify(updatedIndividuals));
     setNewPerson({ name: '', sex: '', birthdate: '' });
     closeModal();
-  };
-
-  const handleDelete = (index) => {
-    const updatedIndividuals = individuals.filter((_, i) => i !== index);
-    setIndividuals(updatedIndividuals);
-    localStorage.setItem('individuals', JSON.stringify(updatedIndividuals));
   };
 
   return (
@@ -69,38 +88,24 @@ const FamilyTreePage = ({ numberOfPeople }) => {
 
       <div className="tree-action-header">
         <div className="tree-info">
-          <span>{individuals.length} of {numberOfPeople} people</span>
+          <span>{individuals.length} of {individuals.length} people</span>
         </div>
-        <div className="tree-search">
-          <input type="text" placeholder="Find person" className="search-input" />
-        </div>
+        {/* Remove custom search input */}
       </div>
 
       <div className="tree-view-section">
-        <h2>Welcome to your family tree! Start here:</h2>
-        <div className="add-individual">
-          <button className="add-individual-button" onClick={openModal}>
-            <span className="add-individual-icon">+</span>
-            <span className="add-individual-text">Add Individual</span>
-          </button>
-        </div>
-        
-        {/* Render added individuals */}
-        <div className="individual-list">
-          {individuals.map((person, index) => (
-            <div key={index} className="individual-card">
-              <h3>{person.name}</h3>
-              <p>Gender: {person.sex}</p>
-              <p>Birthdate: {person.birthdate}</p>
-              <button
-               style={{ backgroundColor: 'green', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}
-                onClick={() => handleDelete(index)}
-              >
-                Delete
-              </button>
-            </div>
-          ))}
-        </div>
+        {individuals.length === 0 && <h2>Welcome to your family tree! Start here:</h2>}
+
+        {individuals.length === 0 && (
+          <div className="add-individual">
+            <button className="add-individual-button" onClick={openModal}>
+              <span className="add-individual-icon">+</span>
+              <span className="add-individual-text">Add Individual</span>
+            </button>
+          </div>
+        )}
+
+        <div ref={treeRef} style={{ width: '100%', height: '600px', display: individuals.length > 0 ? 'block' : 'none' }}></div>
       </div>
 
       {isModalOpen && (
