@@ -11,9 +11,12 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isGuest, setIsGuest] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Set to true for authenticated access
+  const [isGuest, setIsGuest] = useState(false); // Set to true for guest access if needed
+  const [user, setUser] = useState({ name: "Test User" }); // Add mock user data
+
+  // Comment out this useEffect block
+  /*
   useEffect(() => {
     axios.get('http://localhost:8080/api/login', { withCredentials: true })
         .then(response => {
@@ -28,6 +31,7 @@ const App = () => {
           setIsGuest(false);
         });
   }, []);
+  */
 
   return (
       <Router>
@@ -47,9 +51,7 @@ const App = () => {
             />
             <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} user={user}  />} />
             <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
-
             <Route path="/tree/:treeName" element={<FamilyTreePage />} />
-
             <Route path="/home" element={<HomePage />} />
             <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest}  isAuthenticated={isAuthenticated} user={user} setUser={setUser} />} />
           </Routes>
