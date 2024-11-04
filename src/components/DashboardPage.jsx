@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell, FaQuestionCircle } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -63,7 +63,9 @@ const DashboardPage = ({ isAuthenticated }) => {
         const data = await response.text();
         setMessage(`Success: ${data}`);
         closeCreatePrompt();
-        navigate(`/tree/${treeName}`);
+
+        // Redirect using treeName instead of treeId
+        navigate(`/tree/${encodeURIComponent(treeName)}`);
       } else {
         setMessage(`Error: ${response.status}`);
       }
@@ -72,7 +74,7 @@ const DashboardPage = ({ isAuthenticated }) => {
     }
   };
 
-  const openTree = (treeId) => navigate(`/tree/${treeId}`);
+  const openTree = (treeName) => navigate(`/tree/${encodeURIComponent(treeName)}`);
 
   return (
     <div className="dashboard-container d-flex">
@@ -99,7 +101,7 @@ const DashboardPage = ({ isAuthenticated }) => {
           <div className="recent-trees">
             <h4>Recent</h4>
             {trees.slice(0, 3).map((tree) => (
-              <a key={tree.id} href="#" onClick={() => openTree(tree.id)}>
+              <a key={tree.id} href="#" onClick={() => openTree(tree.treeName)}>
                 {tree.treeName}
               </a>
             ))}
@@ -136,7 +138,7 @@ const DashboardPage = ({ isAuthenticated }) => {
           <div className="row">
             {trees.map((tree) => (
               <div className="col-md-3 mb-4" key={tree.id}>
-                <div className="card tree-card" onClick={() => openTree(tree.id)}>
+                <div className="card tree-card" onClick={() => openTree(tree.treeName)}>
                   <img src="placeholder.png" className="card-img-top tree-image" alt={tree.treeName} />
                   <div className="card-body text-center">
                     <h5 className="card-title tree-title">{tree.treeName}</h5>
