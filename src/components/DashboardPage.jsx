@@ -11,6 +11,7 @@ const DashboardPage = ({ isAuthenticated }) => {
   const [visibility, setVisibility] = useState('public');
   const [trees, setTrees] = useState([]);
   const [message, setMessage] = useState('');
+  const [username, setUsername] = useState(''); // State for storing username
   const navigate = useNavigate();
   const userId = 1; // Hardcoded user ID for testing
 
@@ -21,6 +22,23 @@ const DashboardPage = ({ isAuthenticated }) => {
       return;
     }
 
+    // Fetch user information
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`/demo/getUserById?userId=${userId}`);
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+
+        const data = await response.json();
+        if (data && data.username) {
+          setUsername(data.username); // Set the username from the response
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setMessage(`Error fetching user: ${error.message}`);
+      }
+    };
+
+    // Fetch family trees
     const fetchTrees = async () => {
       try {
         const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
@@ -34,6 +52,7 @@ const DashboardPage = ({ isAuthenticated }) => {
       }
     };
 
+    fetchUser();
     fetchTrees();
   }, [isAuthenticated, navigate]);
 
@@ -73,40 +92,6 @@ const DashboardPage = ({ isAuthenticated }) => {
 
   const openTree = (treeName) => navigate(`/tree/${encodeURIComponent(treeName)}`);
 
-  // Drag and drop handlers
-  const handleDragStart = (e, treeId) => {
-    e.dataTransfer.setData("treeId", treeId);
-  };
-
-  const handleDropOnTrash = async (e) => {
-    e.preventDefault();
-    const treeId = e.dataTransfer.getData("treeId");
-  
-    try {
-      const response = await fetch('/demo/deleteFamilyTree', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({ treeId }),
-      });
-  
-      if (response.ok) {
-        const message = await response.text();
-        setMessage(`Success: ${message}`);
-        // Update the trees state to remove the deleted tree
-        setTrees((prevTrees) => prevTrees.filter((tree) => tree.id !== parseInt(treeId)));
-      } else {
-        setMessage(`Error: ${response.status}`);
-      }
-    } catch (error) {
-      setMessage(`Error deleting tree: ${error.message}`);
-    }
-  };
-  
-
-  const allowDrop = (e) => e.preventDefault();
-
   return (
     <div className="dashboard-container d-flex">
       {/* Sidebar */}
@@ -135,17 +120,13 @@ const DashboardPage = ({ isAuthenticated }) => {
             ))}
           </div>
           <hr />
-          <a
-            className="trash-icon"
-            onDrop={handleDropOnTrash}
-            onDragOver={allowDrop}
-          >
+          <a className="trash-icon">
             <Trash />
             <a href="#">Trash</a>
           </a>
         </nav>
       </div>
-      
+
       {/* Main Content */}
       <div className="main-content w-100" style={{ marginLeft: '200px' }}>
         <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
@@ -159,7 +140,7 @@ const DashboardPage = ({ isAuthenticated }) => {
                 <FaQuestionCircle />
               </button>
               <button className="btn btn-link person-name" onClick={() => navigate('/account')}>
-                User Name
+                {username || "User"} {/* Display actual username or "User" if not loaded */}
               </button>
             </div>
           </div>
