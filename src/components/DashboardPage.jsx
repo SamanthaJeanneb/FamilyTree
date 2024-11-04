@@ -21,21 +21,22 @@ const DashboardPage = ({ isAuthenticated }) => {
       return;
     }
 
-    const fetchTrees = async () => {
-      try {
-        const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        
-        const data = await response.json();
-        setTrees(data);
-      } catch (error) {
-        console.error("Error fetching trees:", error);
-        setMessage(`Error fetching trees: ${error.message}`);
-      }
-    };
-
+    // Initial fetch for family trees
     fetchTrees();
   }, [isAuthenticated, navigate]);
+
+  const fetchTrees = async () => {
+    try {
+      const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
+      if (!response.ok) throw new Error(`Error: ${response.status}`);
+      
+      const data = await response.json();
+      setTrees(data);
+    } catch (error) {
+      console.error("Error fetching trees:", error);
+      setMessage(`Error fetching trees: ${error.message}`);
+    }
+  };
 
   const openCreatePrompt = () => setCreatePromptOpen(true);
   const closeCreatePrompt = () => {
@@ -62,7 +63,9 @@ const DashboardPage = ({ isAuthenticated }) => {
         const data = await response.text();
         setMessage(`Success: ${data}`);
         closeCreatePrompt();
-        navigate(`/tree/${encodeURIComponent(treeName)}`);
+
+        // Refetch the trees to update the dashboard
+        fetchTrees();
       } else {
         setMessage(`Error: ${response.status}`);
       }
@@ -75,6 +78,7 @@ const DashboardPage = ({ isAuthenticated }) => {
 
   return (
     <div className="dashboard-container d-flex">
+      {/* Sidebar */}
       <div className="dashboard-sidebar bg-light position-fixed">
         <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
         <nav className="dashboard-nav-links">
@@ -107,6 +111,7 @@ const DashboardPage = ({ isAuthenticated }) => {
         </nav>
       </div>
 
+      {/* Main Content */}
       <div className="main-content w-100" style={{ marginLeft: '200px' }}>
         <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
           <div className="container-fluid">
@@ -151,6 +156,7 @@ const DashboardPage = ({ isAuthenticated }) => {
           </div>
         </div>
 
+        {/* Create Prompt */}
         {isCreatePromptOpen && (
           <div className="create-prompt">
             <div className="create-prompt-content">
