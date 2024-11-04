@@ -1,8 +1,55 @@
 .dashboard-container {
   color: white;
   display: flex;
-  width: 90vw;
+  height: 100vh;
+  width: 100vw;
   font-family: Arial, sans-serif;
+}
+.tree-card {
+  height: 275px; /* Set this to the desired consistent height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.create-tree-card {
+  background-color: #34c759 !important; /* Ensure the background is green */
+  color: white !important; /* Ensure the text is white */
+  height: 275px; /* Match the height of other tree cards */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 10px; /* Optional: Add rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+
+.create-tree-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+
+
+.create-tree-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Style the plus icon */
+.create-tree-card .fa-plus {
+  font-size: 2rem;
+  color: white; /* White plus icon */
+}
+
+/* Optional: Style the title */
+.create-tree-card .tree-title {
+  margin-top: 10px;
+  font-size: 16px;
+  color: white; /* Ensure title text is also white */
 }
 
 .dashboard-sidebar {
