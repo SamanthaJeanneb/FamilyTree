@@ -4,14 +4,18 @@ import './AccountPage.css';
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 
-const AccountPage = ({setIsAuthenticated, setIsGuest, isAuthenticated, user, setUser}) => {
+const AccountPage = ({setIsAuthenticated, setIsGuest, user, setUser}) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if(!isAuthenticated){
-      console.error("User not authenticated");
-      navigate('/');
-    }
+      const accessToken = localStorage.getItem('accessToken'); // Retrieve the token from localStorage
+      if (!accessToken) {
+          console.error("User not authenticated");
+          setUser(null);
+          navigate('/');
+      } else {
+          fetchUser();
+      }
   }, []);
 
   const handleLogout = () => {
@@ -20,12 +24,30 @@ const AccountPage = ({setIsAuthenticated, setIsGuest, isAuthenticated, user, set
           setUser(null);
           setIsAuthenticated(false);  // Update authentication state
           setIsGuest(false);
+          localStorage.removeItem('accessToken');
           navigate('/'); // Ensure guest state is false
         })
         .catch(error => {
           console.error("Error during logout:", error);
         });
   };
+
+    const fetchUser = () => {
+        axios.get('http://localhost:8080/api/login', { withCredentials: true })
+            .then(response => {
+                if (response.data) {
+                    if (response.data.token) {
+                        localStorage.setItem('accessToken', response.data.token);
+                        setIsAuthenticated(true);
+                        setUser(response.data);
+                    }
+                }
+            })
+            .catch(error => {
+                console.log("User not authenticated:", error);
+                setIsAuthenticated(false);
+            });
+    }
 
   if (!user) return <p>Loading...</p>;
 

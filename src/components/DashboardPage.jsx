@@ -9,18 +9,39 @@ import { Network } from 'lucide-react';
 import { PanelsTopLeft } from 'lucide-react';
 import axios from "axios";
 
-const DashboardPage = ({ isAuthenticated, user}) => {
+const DashboardPage = ({ setIsAuthenticated, user, setUser}) => {
   const [isCreatePromptOpen, setCreatePromptOpen] = useState(false);
   const [treeName, setTreeName] = useState('');
   const [visibility, setVisibility] = useState('public');
   const navigate = useNavigate();
 
   useEffect(() => {
-    if(!isAuthenticated){
+    const accessToken = localStorage.getItem('accessToken'); // Retrieve the token from localStorage
+    if (!accessToken) {
       console.error("User not authenticated");
+      setUser(null);
       navigate('/');
+    } else {
+      fetchUser();
     }
   }, []);
+
+  const fetchUser = () => {
+    axios.get('http://localhost:8080/api/login', { withCredentials: true })
+        .then(response => {
+          if (response.data) {
+            if (response.data.token) {
+              localStorage.setItem('accessToken', response.data.token);
+              setIsAuthenticated(true);
+              setUser(response.data);
+            }
+          }
+        })
+        .catch(error => {
+          console.log("User not authenticated:", error);
+          setIsAuthenticated(false);
+        });
+  }
 
 
   const openCreatePrompt = () => setCreatePromptOpen(true);

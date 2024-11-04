@@ -18,8 +18,11 @@ const App = () => {
     axios.get('http://localhost:8080/api/login', { withCredentials: true })
         .then(response => {
           if (response.data) {
-            setIsAuthenticated(true);
-            setUser(response.data);
+              if (response.data.token) {
+                  localStorage.setItem('accessToken', response.data.token);
+                  setIsAuthenticated(true);
+                  setUser(response.data);
+              }
           }
         })
         .catch(error => {
@@ -45,13 +48,13 @@ const App = () => {
                   ))
                 }
             />
-            <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} user={user}  />} />
+            <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser}  />} />
             <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
 
-            <Route path="/tree/:treeName" element={<FamilyTreePage />} />
+            <Route path="/tree/:treeName" element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} />} />
 
             <Route path="/home" element={<HomePage />} />
-            <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest}  isAuthenticated={isAuthenticated} user={user} setUser={setUser} />} />
+            <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest} user={user} setUser={setUser} />} />
           </Routes>
         </div>
       </Router>
