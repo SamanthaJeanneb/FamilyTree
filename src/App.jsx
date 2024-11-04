@@ -16,8 +16,8 @@ const App = () => {
   const [user, setUser] = useState({ name: "Test User" }); // Add mock user data
 
   // Comment out this useEffect block
-  /*
-  useEffect(() => {
+  
+  /*useEffect(() => {
     axios.get('http://localhost:8080/api/login', { withCredentials: true })
         .then(response => {
           if (response.data) {
@@ -32,6 +32,7 @@ const App = () => {
         });
   }, []);
   */
+  
 
   return (
       <Router>
