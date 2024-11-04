@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBell, FaQuestionCircle } from 'react-icons/fa';
+import { FaBell, FaQuestionCircle, FaPlus } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './DashboardPage.css';
 import { Trash, Star, Network, PanelsTopLeft } from 'lucide-react';
@@ -9,7 +9,7 @@ const DashboardPage = ({ isAuthenticated }) => {
   const [isCreatePromptOpen, setCreatePromptOpen] = useState(false);
   const [treeName, setTreeName] = useState('');
   const [visibility, setVisibility] = useState('public');
-  const [trees, setTrees] = useState([]); // Store fetched trees
+  const [trees, setTrees] = useState([]);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
   const userId = 1; // Hardcoded user ID for testing
@@ -21,7 +21,6 @@ const DashboardPage = ({ isAuthenticated }) => {
       return;
     }
 
-    // Fetch user's family trees on component mount
     const fetchTrees = async () => {
       try {
         const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
@@ -63,8 +62,6 @@ const DashboardPage = ({ isAuthenticated }) => {
         const data = await response.text();
         setMessage(`Success: ${data}`);
         closeCreatePrompt();
-
-        // Redirect using treeName instead of treeId
         navigate(`/tree/${encodeURIComponent(treeName)}`);
       } else {
         setMessage(`Error: ${response.status}`);
@@ -82,22 +79,18 @@ const DashboardPage = ({ isAuthenticated }) => {
         <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
         <nav className="dashboard-nav-links">
           <a href="#" className="search">Search Public Trees</a>
-
           <div className="active">
             <Network />
             <a href="#">Your Trees</a>
           </div>
-
           <div className="star-icon">
             <Star />
             <a href="#">Saved Trees</a>
           </div>
-
           <div className="collabPage-icon">
             <PanelsTopLeft />
             <a href="#">Collaborator Trees</a>
           </div>
-
           <div className="recent-trees">
             <h4>Recent</h4>
             {trees.slice(0, 3).map((tree) => (
@@ -106,9 +99,7 @@ const DashboardPage = ({ isAuthenticated }) => {
               </a>
             ))}
           </div>
-
           <hr />
-
           <div className="trash-icon">
             <Trash />
             <a href="#">Trash</a>
@@ -136,6 +127,17 @@ const DashboardPage = ({ isAuthenticated }) => {
 
         <div className="container">
           <div className="row">
+            {/* Create New Tree Card */}
+            <div className="col-md-3 mb-4">
+              <div className="card tree-card create-tree-card text-center" onClick={openCreatePrompt}>
+                <div className="card-body d-flex flex-column justify-content-center align-items-center">
+                  <FaPlus style={{ fontSize: '2rem', color: 'green' }} />
+                  <h5 className="card-title tree-title mt-2">New Tree</h5>
+                </div>
+              </div>
+            </div>
+
+            {/* Existing Tree Cards */}
             {trees.map((tree) => (
               <div className="col-md-3 mb-4" key={tree.id}>
                 <div className="card tree-card" onClick={() => openTree(tree.treeName)}>
