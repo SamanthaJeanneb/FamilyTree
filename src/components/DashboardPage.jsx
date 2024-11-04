@@ -9,14 +9,33 @@ const DashboardPage = ({ isAuthenticated }) => {
   const [isCreatePromptOpen, setCreatePromptOpen] = useState(false);
   const [treeName, setTreeName] = useState('');
   const [visibility, setVisibility] = useState('public');
+  const [trees, setTrees] = useState([]); // Store fetched trees
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const userId = 1; // Hardcoded user ID for testing
 
   useEffect(() => {
     if (!isAuthenticated) {
       console.error("User not authenticated");
       navigate('/');
+      return;
     }
+
+    // Fetch user's family trees on component mount
+    const fetchTrees = async () => {
+      try {
+        const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        
+        const data = await response.json();
+        setTrees(data);
+      } catch (error) {
+        console.error("Error fetching trees:", error);
+        setMessage(`Error fetching trees: ${error.message}`);
+      }
+    };
+
+    fetchTrees();
   }, [isAuthenticated, navigate]);
 
   const openCreatePrompt = () => setCreatePromptOpen(true);
@@ -34,9 +53,9 @@ const DashboardPage = ({ isAuthenticated }) => {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          treeName: treeName || 'SampleTree', // Use entered tree name or default
+          treeName: treeName || 'SampleTree',
           privacySetting: visibility === 'public' ? 'Public' : 'Private',
-          userId: '1', // Hardcoded user ID for testing
+          userId: userId.toString(),
         }),
       });
 
@@ -53,8 +72,7 @@ const DashboardPage = ({ isAuthenticated }) => {
     }
   };
 
-  const openTree = (treeName) => navigate(`/tree/${treeName}`);
-  if (!isAuthenticated) return <p>Loading...</p>;
+  const openTree = (treeId) => navigate(`/tree/${treeId}`);
 
   return (
     <div className="dashboard-container d-flex">
@@ -80,9 +98,11 @@ const DashboardPage = ({ isAuthenticated }) => {
 
           <div className="recent-trees">
             <h4>Recent</h4>
-            <a href="#">Tree 1</a>
-            <a href="#">Tree 2</a>
-            <a href="#">Tree 3</a>
+            {trees.slice(0, 3).map((tree) => (
+              <a key={tree.id} href="#" onClick={() => openTree(tree.id)}>
+                {tree.treeName}
+              </a>
+            ))}
           </div>
 
           <hr />
@@ -114,22 +134,16 @@ const DashboardPage = ({ isAuthenticated }) => {
 
         <div className="container">
           <div className="row">
-            <div className="col-md-3 mb-4">
-              <div className="card tree-card" onClick={openCreatePrompt}>
-                <img src="placeholder.png" className="card-img-top tree-image" alt="New Tree" />
-                <div className="card-body text-center">
-                  <h5 className="card-title tree-title">New Tree</h5>
+            {trees.map((tree) => (
+              <div className="col-md-3 mb-4" key={tree.id}>
+                <div className="card tree-card" onClick={() => openTree(tree.id)}>
+                  <img src="placeholder.png" className="card-img-top tree-image" alt={tree.treeName} />
+                  <div className="card-body text-center">
+                    <h5 className="card-title tree-title">{tree.treeName}</h5>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="col-md-3 mb-4">
-              <div className="card tree-card" onClick={() => openTree('Donald Duck Tree')}>
-                <img src="placeholder.png" className="card-img-top tree-image" alt="Donald Duck Tree" />
-                <div className="card-body text-center">
-                  <h5 className="card-title tree-title">Donald Duck Tree</h5>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
