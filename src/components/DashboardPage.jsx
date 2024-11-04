@@ -21,22 +21,21 @@ const DashboardPage = ({ isAuthenticated }) => {
       return;
     }
 
-    // Initial fetch for family trees
+    const fetchTrees = async () => {
+      try {
+        const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        
+        const data = await response.json();
+        setTrees(data);
+      } catch (error) {
+        console.error("Error fetching trees:", error);
+        setMessage(`Error fetching trees: ${error.message}`);
+      }
+    };
+
     fetchTrees();
   }, [isAuthenticated, navigate]);
-
-  const fetchTrees = async () => {
-    try {
-      const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
-      if (!response.ok) throw new Error(`Error: ${response.status}`);
-      
-      const data = await response.json();
-      setTrees(data);
-    } catch (error) {
-      console.error("Error fetching trees:", error);
-      setMessage(`Error fetching trees: ${error.message}`);
-    }
-  };
 
   const openCreatePrompt = () => setCreatePromptOpen(true);
   const closeCreatePrompt = () => {
@@ -63,9 +62,7 @@ const DashboardPage = ({ isAuthenticated }) => {
         const data = await response.text();
         setMessage(`Success: ${data}`);
         closeCreatePrompt();
-
-        // Refetch the trees to update the dashboard
-        fetchTrees();
+        navigate(`/tree/${encodeURIComponent(treeName)}`);
       } else {
         setMessage(`Error: ${response.status}`);
       }
@@ -80,22 +77,26 @@ const DashboardPage = ({ isAuthenticated }) => {
     <div className="dashboard-container d-flex">
       {/* Sidebar */}
       <div className="dashboard-sidebar bg-light position-fixed">
-        <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
-        <nav className="dashboard-nav-links">
-          <a href="#" className="search">Search Public Trees</a>
-          <div className="active">
-            <Network />
-            <a href="#">Your Trees</a>
-          </div>
-          <div className="star-icon">
-            <Star />
-            <a href="#">Saved Trees</a>
-          </div>
-          <div className="collabPage-icon">
-            <PanelsTopLeft />
-            <a href="#">Collaborator Trees</a>
-          </div>
-          <div className="recent-trees">
+    <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
+    <nav className="dashboard-nav-links">
+      <a href="#" className="search">Search Public Trees</a> 
+      
+      <a className="active">
+        <Network />
+        <a href="#">Your Trees</a>
+      </a>
+      
+      <a className="star-icon">
+        <Star />
+        <a href="#">Saved Trees</a>
+      </a>
+      
+      <a className="collabPage-icon">
+        <PanelsTopLeft />
+        <a href="#">Collaborator Trees</a>
+      </a>
+      
+      <div className="recent-trees">
             <h4>Recent</h4>
             {trees.slice(0, 3).map((tree) => (
               <a key={tree.id} href="#" onClick={() => openTree(tree.treeName)}>
@@ -103,14 +104,15 @@ const DashboardPage = ({ isAuthenticated }) => {
               </a>
             ))}
           </div>
-          <hr />
-          <div className="trash-icon">
-            <Trash />
-            <a href="#">Trash</a>
-          </div>
-        </nav>
-      </div>
-
+      
+      <hr />
+      
+      <a className="trash-icon">
+        <Trash />
+        <a href="#">Trash</a>
+      </a>
+    </nav>
+  </div>
       {/* Main Content */}
       <div className="main-content w-100" style={{ marginLeft: '200px' }}>
         <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
