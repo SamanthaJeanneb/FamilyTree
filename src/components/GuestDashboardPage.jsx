@@ -1,16 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FaSearch } from 'react-icons/fa'; // For the search icon
 import { GoogleLogin } from '@react-oauth/google'; 
 import './GuestDashboardPage.css'; // Add custom styles
-import { Trash } from 'lucide-react';
 import { Star } from 'lucide-react';
 import { Network } from 'lucide-react';
 import { PanelsTopLeft } from 'lucide-react';
+import { Trash } from 'lucide-react';
+
 const GuestDashboardPage = ({ setIsAuthenticated }) => {
-    const handleGoogleLogin = () => {
+    
+  const handleGoogleLogin = () => {
         // Redirect to the backend Google OAuth2 authorization endpoint
         window.location.href = 'http://localhost:8080/oauth2/authorization/google';
     };
+
+    const [searchTerm, setSearchTerm] = useState(''); const navigate = useNavigate();
+
+    const handleSearch = () => {
+      console.log('Navigating to:', `/search-results?query=${searchTerm}`);
+      navigate(`/search-results?query=${searchTerm}`);
+    };    
 
     return (
     <div className="guest-dashboard-container">
@@ -56,9 +66,19 @@ const GuestDashboardPage = ({ setIsAuthenticated }) => {
           <div className="search-section">
               <h1>Search Public Trees</h1>
               <div className="search-bar">
-                  <input type="text" placeholder="Search for family trees"/>
-                  <button className="search-icon">
-                  <FaSearch />
+              <input 
+              type="text"
+              placeholder="Search for family trees"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                }
+              }} 
+            />
+            <button className="search-icon" onClick={handleSearch}>
+              <FaSearch />
             </button>
           </div>
         </div>

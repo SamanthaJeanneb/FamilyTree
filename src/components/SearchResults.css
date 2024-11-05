@@ -1,0 +1,149 @@
+/* General layout */--------------------------------------------------------------------------------------------
+.main-page {
+    display: flex;
+    height: 100vh; /* Full viewport height */
+    width: 100vw;  /* Full viewport width */
+    font-family: Arial, sans-serif;
+    background: linear-gradient(#a5d6a7, #34c759); 
+}
+
+
+/* Results Section */--------------------------------------------------------------------------------------------
+.search-results {
+    color: white;
+    /* display: flex; */
+    flex-direction: row;
+    align-items: center;
+    height: 100vh;
+    flex-grow: 1;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(#a5d6a7, #34c759);
+    margin-top: 50px;
+}
+
+/* Search Section */--------------------------------------------------------------------------------------------
+.search-section-res {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%; 
+    padding: 20px 0;
+    background-color: #a5d6a7;
+}
+
+.search-section-res h1 {
+    font-size: 24px;
+    color: white;
+    margin-bottom: 10px;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}
+
+.search-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    border-radius: 50px;
+    padding: 5px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}
+
+.search-bar input {
+    border: none;
+    padding: 5px 10px;
+    width: 100%;
+    font-size: 14px;
+    color: rgb(95, 89, 89);
+    border-radius: 50px 0 0 50px;
+    outline: none;
+    background-color: transparent;
+}
+
+.search-bar button {
+    background-color: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.search-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+}
+
+/* Sidebar*/--------------------------------------------------------------------------------------------
+.sidebar {
+    width: 250px;
+    background-color: #f4f4f4;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Ensure sidebar takes full height */
+    margin-left: 2px;
+    text-align: left;
+}
+  
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #34c759;
+}
+  
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+  
+.nav-links a {
+    text-decoration: none;
+    color: black;
+    padding: 10px;
+    border-radius: 5px;
+}
+  
+.nav-links a:hover,
+.nav-links a.active {
+    background-color: #34c759;
+    color: white;
+    text-align: center;
+}
+
+.tree-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+  }
+
+.star-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+}
+
+.recent-trees h4 {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    color: black;
+}
+  
+.recent-trees a {
+    color: black;
+    text-decoration: none;
+    display: block;
+    margin: 5px 0;
+}
+
+hr {
+    height: 2px;
+    background-color: black;
+    border: none;
+}
+
+.trash-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+}
