@@ -50,6 +50,7 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
 
     }, []);
 
+
     const fetchUser = () => {
       axios.get('http://localhost:8080/api/login', { withCredentials: true })
           .then(response => {
@@ -85,11 +86,11 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     //   }
     // };
 
+    // Fetch family trees
   const fetchTrees = async () => {
     try {
       const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
       if (!response.ok) throw new Error(`Error: ${response.status}`);
-
       const data = await response.json();
       setTrees(data);
     } catch (error) {
