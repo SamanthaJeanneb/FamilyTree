@@ -4,8 +4,9 @@ import { FaBell, FaQuestionCircle, FaPlus } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './DashboardPage.css';
 import { Trash, Star, Network, PanelsTopLeft } from 'lucide-react';
+import axios from "axios";
 
-const DashboardPage = ({ isAuthenticated }) => {
+const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) => {
   const [isCreatePromptOpen, setCreatePromptOpen] = useState(false);
   const [treeName, setTreeName] = useState('');
   const [visibility, setVisibility] = useState('public');
@@ -16,45 +17,65 @@ const DashboardPage = ({ isAuthenticated }) => {
   const userId = 1; // Hardcoded user ID for testing
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    const accessToken = localStorage.getItem('accessToken'); // Retrieve the token from localStorage
+    if (!accessToken) {
       console.error("User not authenticated");
+      setUser(null);
       navigate('/');
-      return;
+    } else {
+      fetchUser();
+      fetchTrees();
+    }
+    }, []);
+
+    const fetchUser = () => {
+      axios.get('http://localhost:8080/api/login', { withCredentials: true })
+          .then(response => {
+            if (response.data) {
+              if (response.data.token) {
+                localStorage.setItem('accessToken', response.data.token);
+                setIsAuthenticated(true);
+                setUser(response.data);
+                setUsername(response.data.name);
+              }
+            }
+          })
+          .catch(error => {
+            console.error("User not authenticated:", error);
+            setIsAuthenticated(false);
+          });
     }
 
+
     // Fetch user information to get the username
-    const fetchUser = async () => {
-      try {
-        const response = await fetch(`/demo/getUserById?userId=${userId}`);
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        
-        const data = await response.json();
-        if (data && data.username) {
-          setUsername(data.username); // Set the username in state
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        setMessage(`Error fetching user: ${error.message}`);
-      }
-    };
+    // const fetchUser = async () => {
+    //   try {
+    //     const response = await fetch(`/demo/getUserById?userId=${userId}`);
+    //     if (!response.ok) throw new Error(`Error: ${response.status}`);
+    //
+    //     const data = await response.json();
+    //     if (data && data.username) {
+    //       setUsername(data.username); // Set the username in state
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching user:", error);
+    //     setMessage(`Error fetching user: ${error.message}`);
+    //   }
+    // };
 
     // Fetch family trees
-    const fetchTrees = async () => {
-      try {
-        const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        
-        const data = await response.json();
-        setTrees(data);
-      } catch (error) {
-        console.error("Error fetching trees:", error);
-        setMessage(`Error fetching trees: ${error.message}`);
-      }
-    };
+  const fetchTrees = async () => {
+    try {
+      const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
+      if (!response.ok) throw new Error(`Error: ${response.status}`);
 
-    fetchUser();
-    fetchTrees();
-  }, [isAuthenticated, navigate]);
+      const data = await response.json();
+      setTrees(data);
+    } catch (error) {
+      console.error("Error fetching trees:", error);
+      setMessage(`Error fetching trees: ${error.message}`);
+    }
+  }
 
   const openCreatePrompt = () => setCreatePromptOpen(true);
   const closeCreatePrompt = () => {

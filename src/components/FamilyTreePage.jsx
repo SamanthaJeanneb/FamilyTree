@@ -3,8 +3,9 @@ import FamilyTree from '@balkangraph/familytree.js';
 import { FaBell, FaQuestionCircle } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import './FamilyTreePage.css';
+import axios from "axios";
 
-const FamilyTreePage = ({ numberOfPeople }) => {
+const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser  }) => {
   const { treeName } = useParams();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,22 +19,46 @@ const FamilyTreePage = ({ numberOfPeople }) => {
   const familyTreeInstance = useRef(null);
 
   useEffect(() => {
-    const storedIndividuals = JSON.parse(localStorage.getItem('individuals')) || [];
-    setIndividuals(storedIndividuals);
-
-    if (treeRef.current && !familyTreeInstance.current) {
-      familyTreeInstance.current = new FamilyTree(treeRef.current, {
-        nodes: storedIndividuals,
-        template: "hugo",
-        nodeBinding: {
-          field_0: "name",
-          field_1: "birthdate",
-        },
-        nodeTreeMenu: true,
-        search: true, // Enable the built-in search in the FamilyTree display
-      });
+    const accessToken = localStorage.getItem('accessToken'); // Retrieve the token from localStorage
+    if (!accessToken) {
+      console.error("User not authenticated");
+      setUser(null);
+      navigate('/');
+    } else {
+      fetchUser();
+      const storedIndividuals = JSON.parse(localStorage.getItem('individuals')) || [];
+      setIndividuals(storedIndividuals);
+      if (treeRef.current && !familyTreeInstance.current) {
+        familyTreeInstance.current = new FamilyTree(treeRef.current, {
+          nodes: storedIndividuals,
+          template: "hugo",
+          nodeBinding: {
+            field_0: "name",
+            field_1: "birthdate",
+          },
+          nodeTreeMenu: true,
+          search: true, // Enable the built-in search in the FamilyTree display
+        });
+      }
     }
   }, []);
+
+  const fetchUser = () => {
+    axios.get('http://localhost:8080/api/login', { withCredentials: true })
+        .then(response => {
+          if (response.data) {
+            if (response.data.token) {
+              localStorage.setItem('accessToken', response.data.token);
+              setIsAuthenticated(true);
+              setUser(response.data);
+            }
+          }
+        })
+        .catch(error => {
+          console.log("User not authenticated:", error);
+          setIsAuthenticated(false);
+        });
+  }
 
   useEffect(() => {
     if (familyTreeInstance.current) {

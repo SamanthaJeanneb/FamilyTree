@@ -5,7 +5,6 @@ import HomePage from "./components/HomePage";
 import DashboardPage from "./components/DashboardPage";
 import GuestDashboardPage from "./components/GuestDashboardPage";
 import FamilyTreePage from "./components/FamilyTreePage";
-import SearchResults from "./components/SearchResults";
 import LoginPage from "./components/LoginPage";
 import AccountPage from "./components/AccountPage";
 import './App.css';
@@ -18,12 +17,15 @@ const App = () => {
 
   // Comment out this useEffect block
   
-  /*useEffect(() => {
+  useEffect(() => {
     axios.get('http://localhost:8080/api/login', { withCredentials: true })
         .then(response => {
           if (response.data) {
-            setIsAuthenticated(true);
-            setUser(response.data);
+              if (response.data.token) {
+                  localStorage.setItem('accessToken', response.data.token);
+                  setIsAuthenticated(true);
+                  setUser(response.data);
+              }
           }
         })
         .catch(error => {
@@ -32,8 +34,7 @@ const App = () => {
           setIsGuest(false);
         });
   }, []);
-  */
-  
+
 
   return (
       <Router>
@@ -51,12 +52,11 @@ const App = () => {
                   ))
                 }
             />
-            <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} user={user}  />} />
-            <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
-            <Route path="/tree/:treeName" element={<FamilyTreePage />} />
-            <Route path="/search-results" element={<SearchResults />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest}  isAuthenticated={isAuthenticated} user={user} setUser={setUser} />} />
+              <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser}  />} />
+              <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
+              <Route path="/tree/:treeName" element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest} user={user} setUser={setUser} />} />
           </Routes>
         </div>
       </Router>
