@@ -235,45 +235,60 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
           </div>
         </div>
 
-        {/* Create Prompt */}
-        {isCreatePromptOpen && (
-          <div className="create-prompt">
-            <div className="create-prompt-content">
-              <h2>Add New Tree</h2>
+       {/* Create Prompt */}
+{isCreatePromptOpen && (
+  <div className="create-prompt">
+    <div className="create-prompt-content">
+      <div className="create-prompt-inner">
+        
+        <div className="create-prompt-image">
+          <img src="treebackground.png" alt="Tree Background" height="90%" width="90%" />
+        </div>
+        
+        <div className="create-prompt-form">
+          <h2>Add New Tree</h2>
+          <input
+            type="text"
+            id="tree-name"
+            placeholder="Tree Name..."
+            value={treeName}
+            onChange={(e) => setTreeName(e.target.value)}
+            required
+          />
+          <br /><br />
+
+          <div className="radio-group">
+            <label>
               <input
-                type="text"
-                id="tree-name"
-                placeholder="Tree Name..."
-                value={treeName}
-                onChange={(e) => setTreeName(e.target.value)}
-                required
+                type="radio"
+                id="visibility"
+                value="public"
+                checked={visibility === 'public'}
+                onChange={() => setVisibility('public')}
               />
-              <br /><br />
-              <label>
-                <input
-                  type="radio"
-                  id="visibility"
-                  value="public"
-                  checked={visibility === 'public'}
-                  onChange={() => setVisibility('public')}
-                />
-                <span className="circle"></span> Public
-                <br />
-                <input
-                  type="radio"
-                  id="visibility"
-                  value="private"
-                  checked={visibility === 'private'}
-                  onChange={() => setVisibility('private')}
-                />
-                <span className="circle"></span> Private
-              </label>
-              <br /><br />
-              <button className="cancel-button" onClick={closeCreatePrompt}>Close</button>
-              <button className="submit-button" onClick={submit}>Submit</button>
-            </div>
+              <span className="circle"></span> Public
+            </label>
+            <label>
+              <input
+                type="radio"
+                id="visibility"
+                value="private"
+                checked={visibility === 'private'}
+                onChange={() => setVisibility('private')}
+              />
+              <span className="circle"></span> Private
+            </label>
+          </div> <br/>
+
+          <div className="button-container">
+            <button className="cancel-button" onClick={closeCreatePrompt}>Close</button>
+            <button className="submit-button" onClick={submit}>Submit</button>
           </div>
-        )}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
         
         {message && <p style={{ padding: '20px', color: message.includes('Success') ? 'green' : 'red' }}>{message}</p>}
       </div>

@@ -197,6 +197,8 @@
   color: #333;
 }
 
+/*Create Tree Popup*/
+
 .create-prompt {
   position: fixed;
   top: 0;
@@ -207,39 +209,77 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .create-prompt-content {
+  display: flex;
+  align-items: center;
   background: #34c759;
   padding: 1.5%;
   border-radius: 3%;
-  width: 25%;
-  height: 30%;
+  width: 30%;
+  height: 25%; 
   box-shadow: 7px 5px 5px rgba(0, 0, 0, 0.2);
+}
+
+.create-prompt-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.create-prompt-image {
+  width: 40%;
+  height: auto;
+  margin-right: 15px; 
+  opacity: 0.5;
+}
+
+.create-prompt-form {
+  width: 50%; 
 }
 
 #tree-name {
   text-align: center;
-  width: 80%;
-  height: 15%;
+  width: 100%;
+  height: 60%;
   color: black;
   background-color: white;
   border-radius: 10% / 100%;
   border-color: white;
-  padding: 0 / 2%;
+  padding: 0 5%; 
 }
 
 #tree-name::placeholder {
   text-align: center;
 }
 
+.button-container {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px; 
+  margin-top: 15px;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+  width: 100%; 
+  margin-top: 10px;
+}
+
 .cancel-button,
 .submit-button {
   padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 50px;
   cursor: pointer;
   border: none;
   font-size: 16px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); 
+  transition: box-shadow 0.2s ease;
 }
 
 .cancel-button {
@@ -250,4 +290,9 @@
 .submit-button {
   background-color: rgb(56, 133, 45);
   color: white;
+}
+
+.cancel-button:hover,
+.submit-button:hover {
+  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
 }
