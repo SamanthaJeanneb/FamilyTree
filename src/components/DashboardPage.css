@@ -26,13 +26,10 @@
   transition: all 0.3s ease;
 }
 
-
 .create-tree-card:hover {
   transform: scale(1.02);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
-
-
 
 .create-tree-card:hover {
   transform: scale(1.02);
@@ -77,6 +74,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.d-flex.align-items-center {
+  position: relative;
 }
 
 .dashboard-nav-links a {
@@ -295,4 +296,43 @@
 .cancel-button:hover,
 .submit-button:hover {
   box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
+}
+
+/*Notification Dropdown*/
+
+.notification-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 250px;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  z-index: 9999;
+  color: black;
+}
+
+.notification-dropdown h5 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.notification-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+  color: black;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.no-notifications {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #888;
 }

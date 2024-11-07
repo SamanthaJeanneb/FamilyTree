@@ -15,6 +15,25 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
   const [username, setUsername] = useState(''); // State to store username
   const navigate = useNavigate();
   const userId = 1; // Hardcoded user ID for testing
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+
+
+  const toggleNotifications = () => {
+    setShowNotifications(prevShowNotifications => !prevShowNotifications)
+  }
+
+  const handleNotificationClick = (id, url) => {
+    setNotifications(prevNotifications => prevNotifications.filter(notifications => notifications.id !== id));
+    setShowNotifications(false);
+    navigate(url);
+  }
+
+   const demoNotifications = [
+    { id: 1, message: "User 'BT' has suggested and edit to 'Donald Duck Tree'.", url: '/FamilyTreePage'},
+    { id: 2, message: "New collaborator request for 'idk lol'.", url: '/FamilyTreePage' },
+  ];
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken'); // Retrieve the token from localStorage
@@ -26,6 +45,9 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
       fetchUser();
       fetchTrees();
     }
+
+    //fetchNotifications();
+
     }, []);
 
     const fetchUser = () => {
@@ -63,7 +85,6 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     //   }
     // };
 
-    // Fetch family trees
   const fetchTrees = async () => {
     try {
       const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
@@ -76,6 +97,21 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
       setMessage(`Error fetching trees: ${error.message}`);
     }
   }
+
+  {/*Fetch Notifications*/}
+  /*const fetchNotifications = async () => {
+    try {
+      const response = await fetch('/demo/getNotifications');
+      if (!response.ok) throw new Error(`Error: ${response.status}`);
+
+      const data = await response.json();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      setMessage(`Error fetching notifications: ${error.message}`);
+    }
+  };*/
+
 
   const openCreatePrompt = () => setCreatePromptOpen(true);
   const closeCreatePrompt = () => {
@@ -184,16 +220,36 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
           </a>
         </nav>
       </div>
-      
+
       {/* Main Content */}
       <div className="main-content w-100" style={{ marginLeft: '200px' }}>
         <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
           <div className="container-fluid">
             <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'rgb(73, 73, 73)' }}>Your Trees</h1>
             <div className="d-flex align-items-center">
-              <button className="btn btn-link">
+              <button className="btn btn-link" onClick={toggleNotifications}>
                 <FaBell />
               </button>
+
+            {/* Notification Dropdown */}
+            {/* CHANGE ALL INSTANCES OF "demoNotifications" TO "notifications".*/}
+            {showNotifications && (
+                <div className="notification-dropdown">
+                  <h5>Notifications</h5>
+                  {demoNotifications.length > 0 ? (
+                    demoNotifications.map((notification) => (
+                      <div key={notification.id} className="notification-item"
+                      onClick={() => handleNotificationClick(notification.id, notification.url)}
+                      style={{ cursor: 'pointer', color: '#007bff' }}>
+                        {notification.message}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="no-notifications">No new notifications</p>
+                  )}
+                </div>
+              )}
+
               <button className="btn btn-link">
                 <FaQuestionCircle />
               </button>
