@@ -13,29 +13,27 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaBullseye } from "react-icons/fa6";
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Set to true for authenticated access
-  const [isGuest, setIsGuest] = useState(false); // Set to true for guest access if needed
-  const [user, setUser] = useState({ name: "Test User" }); // Add mock user data
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // Set to true for authenticated access
+    const [isGuest, setIsGuest] = useState(false); // Set to true for guest access if needed
+    const [user, setUser] = useState({ name: "Test User" }); // Add mock user data
 
-  // Comment out this useEffect block
-  
-  useEffect(() => {
-    axios.get('http://localhost:8080/api/login', { withCredentials: true })
-        .then(response => {
-          if (response.data) {
-              if (response.data.token) {
-                  localStorage.setItem('accessToken', response.data.token);
-                  setIsAuthenticated(true);
-                  setUser(response.data);
-              }
-          }
-        })
-        .catch(error => {
-          console.log("User not authenticated:", error);
-          setIsAuthenticated(false);
-          setIsGuest(false);
-        });
-  }, []);
+
+    useEffect(() => {
+        axios.get('http://localhost:8080/api/login', { withCredentials: true })
+            .then(response => {
+                if (response.data) {
+                    if (response.data.token) {
+                        setIsAuthenticated(true);
+                        setUser(response.data);
+                    }
+                }
+            })
+            .catch(error => {
+                console.log("User not authenticated:", error);
+                setIsAuthenticated(false);
+                setIsGuest(false);
+            });
+    }, []);
 
 
   return (
@@ -56,7 +54,7 @@ const App = () => {
             />
               <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser}  />} />
               <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
-              <Route path="/tree/:treeName" element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} />} />
+              <Route path="/tree/:treeName" element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} user={user} />} />
               <Route path="/search-results" element={<SearchResults />} />
               <Route path="/home" element={<HomePage />} />
               <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest} user={user} setUser={setUser} />} />

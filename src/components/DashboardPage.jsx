@@ -36,38 +36,25 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
   ];
 
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken'); // Retrieve the token from localStorage
-    if (!accessToken) {
-      console.error("User not authenticated");
-      setUser(null);
-      navigate('/');
-    } else {
-      fetchUser();
-      fetchTrees();
-    }
-
-    //fetchNotifications();
-
-    }, []);
-
-
-    const fetchUser = () => {
-      axios.get('http://localhost:8080/api/login', { withCredentials: true })
-          .then(response => {
-            if (response.data) {
-              if (response.data.token) {
-                localStorage.setItem('accessToken', response.data.token);
-                setIsAuthenticated(true);
-                setUser(response.data);
-                setUsername(response.data.name);
-              }
+    axios.get('http://localhost:8080/api/login', { withCredentials: true })
+        .then(response => {
+          if (response.data) {
+            if (response.data.token) {
+              setIsAuthenticated(true);
+              setUser(response.data);
+              setUsername(response.data.name);
             }
-          })
-          .catch(error => {
-            console.error("User not authenticated:", error);
-            setIsAuthenticated(false);
-          });
-    }
+          }
+        }).then(() => {
+      fetchTrees();
+    })
+        .catch(error => {
+          console.log("User not authenticated:", error);
+          setIsAuthenticated(false);
+          setUser(null);
+          navigate('/');
+        });
+  }, []);
 
 
     // Fetch user information to get the username
@@ -86,11 +73,11 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     //   }
     // };
 
-    // Fetch family trees
   const fetchTrees = async () => {
     try {
       const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
       if (!response.ok) throw new Error(`Error: ${response.status}`);
+
       const data = await response.json();
       setTrees(data);
     } catch (error) {
@@ -158,7 +145,7 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
   const handleDropOnTrash = async (e) => {
     e.preventDefault();
     const treeId = e.dataTransfer.getData("treeId");
-  
+
     try {
       const response = await fetch('/demo/deleteFamilyTree', {
         method: 'POST',
@@ -167,7 +154,7 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
         },
         body: new URLSearchParams({ treeId }),
       });
-  
+
       if (response.ok) {
         const message = await response.text();
         setMessage(`Success: ${message}`);
