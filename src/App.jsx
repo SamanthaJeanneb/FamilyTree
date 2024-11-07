@@ -7,11 +7,13 @@ import GuestDashboardPage from "./components/GuestDashboardPage";
 import FamilyTreePage from "./components/FamilyTreePage";
 import LoginPage from "./components/LoginPage";
 import AccountPage from "./components/AccountPage";
+import SearchResults from "./components/SearchResults";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { FaBullseye } from "react-icons/fa6";
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Set to true for authenticated access
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Set to true for authenticated access
   const [isGuest, setIsGuest] = useState(false); // Set to true for guest access if needed
   const [user, setUser] = useState({ name: "Test User" }); // Add mock user data
 
@@ -55,6 +57,7 @@ const App = () => {
               <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser}  />} />
               <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
               <Route path="/tree/:treeName" element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} />} />
+              <Route path="/searchresults" element={<SearchResults />} />
               <Route path="/home" element={<HomePage />} />
               <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest} user={user} setUser={setUser} />} />
           </Routes>
