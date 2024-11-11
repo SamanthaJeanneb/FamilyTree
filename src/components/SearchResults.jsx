@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaSearch } from 'react-icons/fa';
 import { Trash, Star, Network, PanelsTopLeft } from 'lucide-react';
@@ -9,181 +9,116 @@ const SearchResults = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState(new URLSearchParams(location.search).get('query') || '');
+    const [trees, setTrees] = useState([]);
+    const [message, setMessage] = useState('');
 
-    const handleSearch = () => {
-        navigate(`/search-results?query=${searchTerm}`);
-    };
-
-      const handleGoogleLoginSuccess = (response) => {
+    const handleGoogleLoginSuccess = (response) => {
         console.log('Google Login Success:', response);
         setIsAuthenticated(true);
-      };
+    };
 
-      const handleGoogleLoginFailure = (error) => {
+    const handleGoogleLoginFailure = (error) => {
         console.error('Google Login Failure:', error);
-      };
+    };
 
-    const mockResults = [
-        { id: 1, title: "Mock Tree 1" },
-        { id: 2, title: "Mock Tree 2" },
-        { id: 3, title: "Mock Tree 3" },
-    ];
+    useEffect(() => {
+        getPublicTrees();
+    }, []);
 
-    return (
-        <div className="guest-dashboard-container">
-            <div className="sidebar">
-                <img src="/familytreelogo.png" alt="Tree" className="dashboard-logo" />
-                <nav className="nav-links">
-                    <a href="#" className="active">Search Public Trees</a>
-                    <a className="tree-icon">
-                        <Network />
-                        <a href="#">Your Trees</a> </a>
-                    <a className="star-icon">
-                        <Star />
-                        <a href="#">Saved Trees</a> </a>
-                    <a className="collabPage-icon">
-                        <PanelsTopLeft />
-                        <a href="#">Collaborator Trees</a> </a>
-                    <div className="recent-trees">
-                        <h4>Recent</h4>
-                        <a href="#">Tree 1</a>
-                        <a href="#">Tree 2</a>
-                        <a href="#">Tree 3</a>
+    /* {"data":[{"treeId":3,"treeName":"kjh","ownerUsername":"NewUser"}],"message":"Public family trees retrieved successfully.","status":"success"} */
+
+    const getPublicTrees = async () => {
+        try {
+            const response = await fetch(`/demo/getPublicTrees`, { mode: 'no-cors' });
+            if (!response.ok) throw new Error(`Error: ${response.status}`);
+
+            const resp = await response.json();
+            setTrees(resp.data);
+        } catch (error) {
+            console.error("Error fetching trees:", error);
+            setMessage(`Error fetching trees: ${error.message}`);
+        }
+    }
+
+    const openTree = (treeName) => navigate(`/tree/${encodeURIComponent(treeName)}`);
+
+
+        return (
+            <div className="guest-dashboard-container">
+                <div className="sidebar">
+                    <img src="/familytreelogo.png" alt="Tree" className="dashboard-logo" />
+                    <nav className="nav-links">
+                        <a href="#" className="active">Search Public Trees</a>
+                        <a className="tree-icon">
+                            <Network />
+                            <a href="#">Your Trees</a> </a>
+                        <a className="star-icon">
+                            <Star />
+                            <a href="#">Saved Trees</a> </a>
+                        <a className="collabPage-icon">
+                            <PanelsTopLeft />
+                            <a href="#">Collaborator Trees</a> </a>
+                    </nav>
+                </div>
+                <div className="guest-main-content">
+                    <div className="top-bar">
+                        <div className="google-login-button">
+                            <button className="google-login-button">
+                                <img
+                                    src="/google.png"
+                                    alt="Google logo"
+                                    className="google-logo"
+                                />
+                                Sign in with Google
+                            </button>
+                        </div>
                     </div>
-                    <hr></hr>
-                    <a className="trash-icon">
-                        <Trash />
-                        <a href="#">Trash</a> </a>
-                </nav>
-            </div>
-            <div className="guest-main-content">
-                <div className="top-bar">
-                    <div className="google-login-button">
-                        <button className="google-login-button">
-                            <img
-                                src="/google.png"
-                                alt="Google logo"
-                                className="google-logo"
+                    <div className="search-section-res">
+                        <h1>Search Public Trees</h1>
+                        <div className="search-bar2">
+                            <input
+                                type="text"
+                                placeholder="Search for family trees"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        getPublicTrees();
+                                    }
+                                }}
                             />
-                            Sign in with Google
-                        </button>
-                    </div>
-                </div>
-                <div className="search-section-res">
-                    <h1>Search Public Trees</h1>
-                    <div className="search-bar">
-                        <input
-                            type="text"
-                            placeholder="Search for family trees"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSearch();
-                                }
-                            }}
-                        />
-                        <button className="search-icon" onClick={handleSearch}>
-                            <FaSearch />
-                        </button>
-                    </div>
-                    <div className="search-results">
-                        <h1>Displaying Results for "{searchTerm}"</h1>
-                        <ul>
-                            {mockResults.map(result => (
-                                <li key={result.id}>
-                                    <a href={`/tree/${result.id}`}>{result.title}</a>
-                                </li>
-                            ))}
-                        </ul>
+                            <button className="search-icon" onClick={getPublicTrees}>
+                                <FaSearch />
+                            </button>
+                        </div>
+                        <div className="search-results">
+                            <h1>Displaying Results for "{searchTerm}"</h1>
+                            <div className="container">
+                                <div className="row">
+                                    {/* Existing Tree Cards */}
+                                    {trees.filter(tree => tree.treeName.toLowerCase().includes(searchTerm.toLowerCase()))
+                                        .map((tree) => (
+                                            <div
+                                                className="col-md-3 mb-4"
+                                                key={tree.id}
+                                            >
+                                                <div className="card tree-card" onClick={() => openTree(tree.treeName)}>
+                                                    <img src="placeholder.png" className="card-img-top tree-image" alt={tree.treeName} />
+                                                    <div className="card-body text-center">
+                                                        <h5 className="card-title tree-title">{tree.treeName}</h5>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        </div>
+                        {message && <p style={{ padding: '20px', color: message.includes('Success') ? 'green' : 'red' }}>{message}</p>}
                     </div>
                 </div>
             </div>
-        </div>
-    );
-};
+        );
+    };
 
 
-//         <div className="main-page">
-//             <div className="container">
-//                 <div className="row">
-//                     <div className="top-bar">
-//                         {/* <GoogleLogin
-//                             onSuccess={handleGoogleLoginSuccess}
-//                             onError={handleGoogleLoginFailure}
-//                             text="signin_with"
-//                             width="200"
-//                             className="google-signin-button"
-//                         /> */}
-//                     </div>
-//                 </div>
-//                 <div className="row">
-//                     <div className="col-sm-3">
-//                         <div className="sidebar">
-//                             <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
-//                             <nav className="nav-links">
-//                                 <a href="#" className="active">Search Public Trees</a>
-//                                 <div className="tree-icon">
-//                                     <Network />
-//                                     <a href="#">Your Trees</a>
-//                                 </div>
-//                                 <div className="star-icon">
-//                                     <Star />
-//                                     <a href="#">Saved Trees</a>
-//                                 </div>
-//                                 <div className="collabPage-icon">
-//                                     <PanelsTopLeft />
-//                                     <a href="#">Collaborator Trees</a>
-//                                 </div>
-//                                 <div className="recent-trees">
-//                                     <h4>Recent</h4>
-//                                     <a href="#">Tree 1</a>
-//                                     <a href="#">Tree 2</a>
-//                                     <a href="#">Tree 3</a>
-//                                 </div>
-//                                 <hr />
-//                                 <div className="trash-icon">
-//                                     <Trash />
-//                                     <a href="#">Trash</a>
-//                                 </div>
-//                             </nav>
-//                         </div>
-//                     </div>
-//                     <div className="col-sm-9">
-//                         <div className="search-section">
-//                             <h1>Search Public Trees</h1>
-//                             <div className="search-bar">
-//                                 <input
-//                                     type="text"
-//                                     placeholder="Search for family trees"
-//                                     value={searchTerm}
-//                                     onChange={(e) => setSearchTerm(e.target.value)}
-//                                     onKeyDown={(e) => {
-//                                         if (e.key === 'Enter') {
-//                                             handleSearch();
-//                                         }
-//                                     }}
-//                                 />
-//                                 <button className="search-icon" onClick={handleSearch}>
-//                                     <FaSearch />
-//                                 </button>
-//                             </div>
-//                             <div className="search-results">
-//                                 <h1>Displaying Results for "{searchTerm}"</h1>
-//                                 <ul>
-//                                     {mockResults.map(result => (
-//                                         <li key={result.id}>
-//                                             <a href={`/tree/${result.id}`}>{result.title}</a>
-//                                         </li>
-//                                     ))}
-//                                 </ul>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-export default SearchResults;
+    export default SearchResults;

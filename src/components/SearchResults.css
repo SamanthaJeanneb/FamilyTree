@@ -40,7 +40,7 @@
     text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
 }
 
-.search-bar {
+.search-bar2 {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -52,7 +52,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
 }
 
-.search-bar input {
+.search-bar2 input {
     border: none;
     padding: 5px 10px;
     width: 100%;
@@ -63,7 +63,7 @@
     background-color: transparent;
 }
 
-.search-bar button {
+.search-bar2 button {
     background-color: transparent;
     border: none;
     font-size: 18px;

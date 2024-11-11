@@ -37,16 +37,6 @@ const GuestDashboardPage = ({ setIsAuthenticated }) => {
           <a className="collabPage-icon">
           <PanelsTopLeft />
           <a href="#">Collaborator Trees</a> </a>
-          <div className="recent-trees">
-            <h4>Recent</h4>
-            <a href="#">Tree 1</a>
-            <a href="#">Tree 2</a>
-            <a href="#">Tree 3</a>
-          </div>
-          <hr></hr>
-          <a className="trash-icon">
-            <Trash />
-          <a href="#">Trash</a> </a>
         </nav>
       </div>
       <div className="guest-main-content">
