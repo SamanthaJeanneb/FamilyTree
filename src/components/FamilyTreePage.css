@@ -14,10 +14,56 @@
   background-color: white;
   border-bottom: 2px solid #e0e0e0;
 }
+/* Apply background color and shape for male nodes (squares) */
+svg.john .node.male > rect {
+  fill: #4CAF50; /* Change to desired color for male nodes */
+  width: 80px;
+  height: 80px;
+  rx: 0; /* Ensures square corners */
+}
+
+/* Apply background color and shape for female nodes (circles) */
+svg.john .node.female > circle {
+  fill: #FF4081; /* Change to desired color for female nodes */
+  r: 40; /* Radius for circle */
+}
+
+/* Styling for the name field (field_0) */
+svg.john .field_0 {
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  fill: #ffffff;
+  text-anchor: middle;
+}
+
+/* Styling for the birthdate field (field_1) */
+svg.john .field_1 {
+  font-family: 'Arial', sans-serif;
+  font-size: 12px;
+  fill: #cccccc;
+  text-anchor: middle;
+}
+
+/* Change background color of the SVG (tree container) */
+#tree > svg {
+  background-color: #f3f3f3; /* Modify to your preferred background color */
+}
+
+/* Add hover effect to links */
+[data-c-l-from]:hover > path:first-child {
+  stroke-width: 2; /* Increase stroke width on hover */
+  stroke: #ffca28; /* Change link color on hover */
+}
+
+/* Styling for links between nodes */
+[data-l-id] path {
+  stroke: #666; /* Color for links */
+}
+
 .floating-add-button {
   position: fixed;
-  right: 50vw;
-  bottom: 20px;
+  right: 48vw;
+  bottom: 65px;
   background-color: #a3a3a3;
   color: white;
   border: none;
@@ -132,6 +178,7 @@
 }
 
 .tree-view-section {
+  overflow: hidden;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
