@@ -158,9 +158,9 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
 
       <div className="tree-view-section">
         
-        {individuals.length === 0 && <h2>Welcome to your family tree! Start here:</h2>}
         {individuals.length === 0 && (
           <div className="add-individual">
+            <h2>Welcome to your family tree! Start here:</h2>
             <button className="add-individual-button" onClick={openModal}>
               <span className="add-individual-icon">+</span>
               <span className="add-individual-text">Add Individual</span>

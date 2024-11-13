@@ -188,7 +188,17 @@ svg.john .field_1 {
 }
 
 .add-individual {
-  margin-top: 40px;
+  margin-top: 200px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.add-individual-button {
+  margin-top: 70px;
+  margin-left: 185px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .add-individual-button {
