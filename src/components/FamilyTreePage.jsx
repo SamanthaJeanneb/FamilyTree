@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { FaBell, FaQuestionCircle } from 'react-icons/fa';
-import { useParams, useNavigate } from 'react-router-dom';
+import { FaBell, FaQuestionCircle, FaPlus } from 'react-icons/fa';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './FamilyTreePage.css';
 import axios from "axios";
 
 const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
-  const { treeName } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { treeId } = location.state || {}; // Retrieve treeId from state
+  const treeName = location.pathname.split('/')[2]; // Retrieve treeName from URL if needed
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [individuals, setIndividuals] = useState([]);
+  const userId = 1; // Hardcoded userId as 1
   const [newPerson, setNewPerson] = useState({
     name: '',
-    sex: 'Male', // default value, aligns with ENUM values
+    sex: 'Male',
     birthdate: '',
     deathdate: '',
     additionalInfo: '',
@@ -19,94 +23,42 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
   });
 
   useEffect(() => {
+    console.log("treeId from state:", treeId, "userId (hardcoded):", userId);
+
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       console.error("User not authenticated");
       setUser(null);
       navigate('/');
-    } else {
-      fetchUser();
+    } else if (treeId && userId) {
       fetchFamilyMembers();
     }
-  }, []);
-
-  const fetchUser = () => {
-    axios.get('http://localhost:8080/api/login', { withCredentials: true })
-      .then(response => {
-        if (response.data && response.data.token) {
-          localStorage.setItem('accessToken', response.data.token);
-          setIsAuthenticated(true);
-          setUser(response.data);
-        }
-      })
-      .catch(error => {
-        console.log("User not authenticated:", error);
-        setIsAuthenticated(false);
-      });
-  };
+  }, [treeId, userId]);
 
   const fetchFamilyMembers = () => {
     const accessToken = localStorage.getItem('accessToken');
+
+    if (!treeId) {
+      console.error("treeId is undefined or null. Cannot fetch family members.");
+      return;
+    }
+
     axios.get('/demo/getFamilyMembersInTree', {
-      params: { treeId: 2 },
+      params: { treeId },
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       }
     })
     .then(response => {
-      console.log("Fetched family members:", response.data); // Log the response
+      console.log("Fetched family members:", response.data);
       setIndividuals(response.data);
     })
     .catch(error => {
+      console.error("Error fetching family members:", error);
       if (error.response && error.response.status === 401) {
         window.location.href = 'https://accounts.google.com/o/oauth2/auth?prompt=select_account&response_type=code&client_id=YOUR_CLIENT_ID&scope=email%20profile&redirect_uri=http://localhost:8080/login/oauth2/code/google';
-      } else {
-        console.error("Error fetching family members:", error);
       }
     });
-  };
-  
-
-  const deleteFamilyMember = async (memberId) => {
-    if (memberId === undefined || memberId === null) {
-      console.error("Error: memberId is undefined or null.");
-      return;
-    }
-  
-    try {
-      const response = await fetch('/demo/deleteFamilyMember', {  // Absolute URL
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({ memberId: memberId.toString() }), // Ensure memberId is sent as a string
-      });
-  
-      if (response.ok) {
-        const message = await response.text();
-        console.log(`Success: ${message}`);
-        // Update the individuals state to remove the deleted member using correct field
-        setIndividuals((prevIndividuals) => prevIndividuals.filter((person) => person.memberId !== memberId));
-      } else {
-        console.error(`Error: ${response.status}`);
-      }
-    } catch (error) {
-      console.error(`Error deleting family member: ${error.message}`);
-    }
-  };
-  
-  
-  
-
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewPerson((prevPerson) => ({
-      ...prevPerson,
-      [name]: value
-    }));
   };
 
   const handleFormSubmit = (e) => {
@@ -120,12 +72,14 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
     formData.append('name', newPerson.name);
     formData.append('birthdate', formattedBirthdate);
     formData.append('gender', newPerson.sex);
-    formData.append('userId', 1);             // Replace with actual user ID
-    formData.append('treeId', 2);             // Replace with actual tree ID
-    formData.append('addedById', 1);          // Replace with actual added by ID
-    if (newPerson.deathdate) formData.append('deathdate', formattedDeathdate);
+    formData.append('userId', userId); // Hardcoded userId
+    formData.append('treeId', treeId); // Use treeId from state
+    formData.append('addedById', userId); // Hardcoded userId for addedById
+    if (formattedDeathdate) formData.append('deathdate', formattedDeathdate);
     if (newPerson.additionalInfo) formData.append('additionalInfo', newPerson.additionalInfo);
-    formData.append('isPrivate', newPerson.isPrivate);
+    formData.append('isPrivate', newPerson.isPrivate.toString());
+
+    console.log("Form data to be sent:", Object.fromEntries(formData.entries()));
 
     axios.post('/demo/addFamilyMember', formData, {
       headers: {
@@ -134,18 +88,52 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
       }
     })
     .then(response => {
-        console.log("Family member added:", response.data);
-        fetchFamilyMembers();
-        setNewPerson({ name: '', sex: 'Male', birthdate: '', deathdate: '', additionalInfo: '', isPrivate: false });
-        closeModal();
+      console.log("Family member added:", response.data);
+      fetchFamilyMembers();
+      setNewPerson({ name: '', sex: 'Male', birthdate: '', deathdate: '', additionalInfo: '', isPrivate: false });
+      closeModal();
     })
     .catch(error => {
-      if (error.response) {
-        console.error("Error adding family member:", error.response.data);
-      } else {
-        console.error("Unknown error:", error);
-      }
+      console.error("Error adding family member:", error);
     });
+  };
+
+  const deleteFamilyMember = async (memberId) => {
+    if (!memberId) {
+      console.error("Error: memberId is undefined or null.");
+      return;
+    }
+
+    try {
+      const response = await fetch('/demo/deleteFamilyMember', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ memberId: memberId.toString() }),
+      });
+
+      if (response.ok) {
+        const message = await response.text();
+        console.log(`Success: ${message}`);
+        setIndividuals((prevIndividuals) => prevIndividuals.filter((person) => person.memberId !== memberId));
+      } else {
+        console.error(`Error: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting family member: ${error.message}`);
+    }
+  };
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewPerson((prevPerson) => ({
+      ...prevPerson,
+      [name]: value
+    }));
   };
 
   return (
@@ -184,29 +172,30 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
           </div>
         )}
 
-<ul className="individual-list">
-  {individuals.map((person) => (
-    <li key={person.memberId} className="individual-card">
-      <h3>{person.name}</h3>
-      <p>Birthdate: {person.birthdate}</p>
-      <p>Deathdate: {person.deathdate || 'N/A'}</p>
-      <p>Gender: {person.gender}</p>
-      <p>Additional Info: {person.additionalInfo || 'N/A'}</p>
-      {person.memberId && (
-        <button onClick={() => {
-          console.log("Clicked delete for memberId:", person.memberId); // Log for debugging
-          deleteFamilyMember(person.memberId);
-        }} className="btn btn-danger">
-          Delete
-        </button>
-      )}
-    </li>
-  ))}
-</ul>
-
-
-
+        <ul className="individual-list">
+          {individuals.map((person) => (
+            <li key={person.memberId} className="individual-card">
+              <h3>{person.name}</h3>
+              <p>Birthdate: {person.birthdate}</p>
+              <p>Deathdate: {person.deathdate || 'N/A'}</p>
+              <p>Gender: {person.gender}</p>
+              <p>Additional Info: {person.additionalInfo || 'N/A'}</p>
+              {person.memberId && (
+                <button onClick={() => deleteFamilyMember(person.memberId)} className="btn btn-danger">
+                  Delete
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
+
+      {individuals.length > 0 && (
+        <button className="floating-add-button" onClick={openModal} title="Add Individual">
+  +
+</button>
+
+      )}
 
       {isModalOpen && (
         <div className="d-flex justify-content-center align-items-center" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1000 }}>
@@ -226,7 +215,6 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
                   required
                 />
               </div>
-
               <div className="form-group">
                 <label>Sex</label>
                 <select className="form-control" name="sex" value={newPerson.sex} onChange={handleInputChange}>
@@ -235,7 +223,6 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
                   <option value="Other">Other</option>
                 </select>
               </div>
-
               <div className="form-group">
                 <label htmlFor="birthdate">Birthdate</label>
                 <input
@@ -248,7 +235,6 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
                   required
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="deathdate">Deathdate</label>
                 <input
@@ -260,7 +246,6 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
                   onChange={handleInputChange}
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="additionalInfo">Additional Info</label>
                 <textarea
@@ -272,7 +257,6 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
                   onChange={handleInputChange}
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="isPrivate">Private</label>
                 <input
@@ -283,7 +267,6 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
                   onChange={(e) => setNewPerson(prev => ({ ...prev, isPrivate: e.target.checked }))}
                 />
               </div>
-
               <div className="form-buttons d-flex justify-content-between">
                 <button type="button" className="btn btn-secondary" onClick={closeModal}>
                   Cancel

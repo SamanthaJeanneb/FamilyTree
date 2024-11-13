@@ -147,8 +147,9 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     }
   };
 
-  const openTree = (treeName) => navigate(`/tree/${encodeURIComponent(treeName)}`);
-
+  const openTree = (treeId, treeName, userId) => {
+    navigate(`/tree/${encodeURIComponent(treeName)}`, { state: { treeId, userId } });
+  };
   // Drag and drop handlers
   const handleDragStart = (e, treeId) => {
     e.dataTransfer.setData("treeId", treeId);
@@ -204,7 +205,8 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
           <div className="recent-trees">
             <h4>Recent</h4>
             {trees.slice(0, 3).map((tree) => (
-              <a key={tree.id} href="#" onClick={() => openTree(tree.treeName)}>
+              <a key={tree.id} href="#" onClick={() => openTree(tree.id, tree.treeName, user.id)
+              }>
                 {tree.treeName}
               </a>
             ))}
@@ -274,20 +276,20 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
 
             {/* Existing Tree Cards */}
             {trees.map((tree) => (
-              <div
-                className="col-md-3 mb-4"
-                key={tree.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, tree.id)}
-              >
-                <div className="card tree-card" onClick={() => openTree(tree.treeName)}>
-                  <img src="placeholder.png" className="card-img-top tree-image" alt={tree.treeName} />
-                  <div className="card-body text-center">
-                    <h5 className="card-title tree-title">{tree.treeName}</h5>
-                  </div>
-                </div>
-              </div>
-            ))}
+  <div
+    className="col-md-3 mb-4"
+    key={tree.id}
+    draggable
+    onDragStart={(e) => handleDragStart(e, tree.id)}
+  >
+    <div className="card tree-card" onClick={() => openTree(tree.id, tree.treeName, user.id)}>
+      <img src="placeholder.png" className="card-img-top tree-image" alt={tree.treeName} />
+      <div className="card-body text-center">
+        <h5 className="card-title tree-title">{tree.treeName}</h5>
+      </div>
+    </div>
+  </div>
+))}
           </div>
         </div>
 
