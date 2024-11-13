@@ -21,19 +21,21 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
 
 
   const toggleNotifications = () => {
-    setShowNotifications(prevShowNotifications => !prevShowNotifications)
+    setShowNotifications(prevShowNotifications => !prevShowNotifications);
   }
 
-  const handleNotificationClick = (id, url) => {
-    setNotifications(prevNotifications => prevNotifications.filter(notifications => notifications.id !== id));
-    setShowNotifications(false);
-    navigate(url);
+  const handleNotificationClick = async (id, url) => {
+    try {
+      // Deletes notification in the server
+      const response = await axios.delete(`/demo/notifications/delete?userId=${userId}&notificationId=${id}`);
+      if (response.data === "Notification deleted successfully.") {
+        // Deletes notification in the display
+        setNotifications(prevNotifications => prevNotifications.filter(notification => notification.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
   }
-
-   const demoNotifications = [
-    { id: 1, message: "User 'BT' has suggested and edit to 'Donald Duck Tree'.", url: '/FamilyTreePage'},
-    { id: 2, message: "New collaborator request for 'idk lol'.", url: '/FamilyTreePage' },
-  ];
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken'); // Retrieve the token from localStorage
@@ -44,9 +46,8 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     } else {
       fetchUser();
       fetchTrees();
+      fetchNotifications();
     }
-
-    //fetchNotifications();
 
     }, []);
 
@@ -99,18 +100,19 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
   }
 
   {/*Fetch Notifications*/}
-  /*const fetchNotifications = async () => {
+  const fetchNotifications = async () => {
     try {
-      const response = await fetch('/demo/getNotifications');
+      const response = await fetch(`/demo/notifications/${userId}`);
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
       const data = await response.json();
+      console.log("Fetched Notifications:", data);
       setNotifications(data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       setMessage(`Error fetching notifications: ${error.message}`);
     }
-  };*/
+  };
 
 
   const openCreatePrompt = () => setCreatePromptOpen(true);
@@ -238,8 +240,8 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
             {showNotifications && (
                 <div className="notification-dropdown">
                   <h5>Notifications</h5>
-                  {demoNotifications.length > 0 ? (
-                    demoNotifications.map((notification) => (
+                  {notifications.length > 0 ? (
+                    notifications.map((notification) => (
                       <div key={notification.id} className="notification-item"
                       onClick={() => handleNotificationClick(notification.id, notification.url)}
                       style={{ cursor: 'pointer', color: '#007bff' }}>
