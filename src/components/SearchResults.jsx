@@ -62,6 +62,7 @@ const SearchResults = () => {
                 </div>
                 <div className="guest-main-content">
                     <div className="top-bar">
+                    <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'rgb(73, 73, 73)' }}>Search Public Trees</h1>
                         <div className="google-login-button">
                             <button className="google-login-button">
                                 <img
@@ -74,7 +75,6 @@ const SearchResults = () => {
                         </div>
                     </div>
                     <div className="search-section-res">
-                        <h1>Search Public Trees</h1>
                         <div className="search-bar2">
                             <input
                                 type="text"

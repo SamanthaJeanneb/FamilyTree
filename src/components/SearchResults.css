@@ -18,8 +18,18 @@
     flex-grow: 1;
     font-family: Arial, sans-serif;
     background: linear-gradient(#a5d6a7, #34c759);
-    margin-top: 50px;
+    margin-top: 10px;
 }
+
+.top-bar {
+    background: #f4f4f4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
+    font-size: 10px;
+}
+
 
 /* Search Section */--------------------------------------------------------------------------------------------
 .search-section-res {
@@ -42,14 +52,17 @@
 
 .search-bar2 {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    position: fixed; /* Fixed position at the top */
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%); /* Center the search bar horizontally */
     background-color: white;
     border-radius: 50px;
     padding: 5px;
-    width: 100%;
+    width: 90%; /* Adjust to fit screen */
     max-width: 600px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+    z-index: 10; /* Ensure it stays above other content */
 }
 
 .search-bar2 input {
