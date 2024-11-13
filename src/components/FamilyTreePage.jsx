@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaBell, FaQuestionCircle, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaBell, FaQuestionCircle, FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './FamilyTreePage.css';
 import axios from 'axios';
 import FamilyTree from '@balkangraph/familytree.js';
 
-const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
+const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { treeId } = location.state || {}; 
   const { treeName } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [individuals, setIndividuals] = useState([]);
-  const userId = 1; 
+  const [username, setUsername] = useState(''); // State to store username
+  const userId = 1; // Hardcoded user ID for testing
   const treeContainerRef = useRef(null);
   const familyTreeInstance = useRef(null);
 
@@ -30,8 +31,11 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
     if (!accessToken) {
       setUser(null);
       navigate('/');
-    } else if (treeId && userId) {
-      fetchFamilyMembers();
+    } else {
+      fetchUser(); // Fetch the username when the component mounts
+      if (treeId && userId) {
+        fetchFamilyMembers();
+      }
     }
   }, [treeId, userId]);
 
@@ -40,6 +44,21 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
       renderFamilyTree();
     }
   }, [individuals]);
+
+  const fetchUser = () => {
+    axios.get('http://localhost:8080/api/login', { withCredentials: true })
+      .then(response => {
+        if (response.data && response.data.name) {
+          setUsername(response.data.name); // Set the username in state
+          setIsAuthenticated(true);
+          setUser(response.data);
+        }
+      })
+      .catch(error => {
+        console.error("User not authenticated:", error);
+        setIsAuthenticated(false);
+      });
+  };
 
   const fetchFamilyMembers = () => {
     const accessToken = localStorage.getItem('accessToken');
@@ -64,15 +83,19 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
       birthdate: person.birthdate,
       gender: person.gender,
       additionalInfo: person.additionalInfo,
-      img: person.gender === 'Male' ? 'https://balkangraph.com/js/img/john-m.png' : 'https://balkangraph.com/js/img/john-f.png',
+      img: person.gender === 'Male' 
+        ? '/profile-placeholder.png'
+        : '/profile-placeholder.png',
+      template: person.gender === 'Male' ? 'john_male' : 'john_female',
     }));
-
+  
     if (familyTreeInstance.current) {
-      familyTreeInstance.current.clear(); // Clear the old tree before re-rendering
+      familyTreeInstance.current.clear();
     }
-
+  
     familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
       template: 'john',
+      nodeTreeMenu: true,
       nodes: nodes,
       nodeBinding: {
         field_0: 'name',
@@ -146,7 +169,9 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
         <div className="d-flex align-items-center">
           <button className="icon-button"><FaBell /></button>
           <button className="icon-button"><FaQuestionCircle /></button>
-          <button className="icon-button person-name" onClick={() => navigate('/account')}>Person Name</button>
+          <button className="btn btn-link person-name" onClick={() => navigate('/account')}>
+            {username || "User"} {/* Display the actual username or "User" if not loaded */}
+          </button>
         </div>
       </div>
 
@@ -217,8 +242,6 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
                 <textarea className="form-control" id="additionalInfo" name="additionalInfo" placeholder="Additional information" value={newPerson.additionalInfo} onChange={handleInputChange} />
               </div>
               <div className="form-group">
-                <label htmlFor="isPrivate">Private</label>
-                <input type="checkbox" id="isPrivate" name="isPrivate" checked={newPerson.isPrivate} onChange={(e) => setNewPerson(prev => ({ ...prev, isPrivate: e.target.checked }))} />
               </div>
               <div className="form-buttons d-flex justify-content-between">
                 <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>

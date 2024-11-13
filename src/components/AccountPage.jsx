@@ -57,7 +57,7 @@ const AccountPage = ({setIsAuthenticated, setIsGuest, isAuthenticated, user, set
           <h2>Account Details</h2>
           <div className="text-center">
             <img
-                src=''
+                src='profile-placeholder.png'
                 alt="Profile"
                 className="rounded-circle img-thumbnail mb-3"
             />
