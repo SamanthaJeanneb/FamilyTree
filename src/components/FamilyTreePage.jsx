@@ -12,8 +12,8 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   const { treeName } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [individuals, setIndividuals] = useState([]);
-  const [username, setUsername] = useState(''); // State to store username
-  const userId = 1; // Hardcoded user ID for testing
+  const [username, setUsername] = useState('');
+  const userId = 1;
   const treeContainerRef = useRef(null);
   const familyTreeInstance = useRef(null);
 
@@ -32,7 +32,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
       setUser(null);
       navigate('/');
     } else {
-      fetchUser(); // Fetch the username when the component mounts
+      fetchUser(); 
       if (treeId && userId) {
         fetchFamilyMembers();
       }
@@ -49,7 +49,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
     axios.get('http://localhost:8080/api/login', { withCredentials: true })
       .then(response => {
         if (response.data && response.data.name) {
-          setUsername(response.data.name); // Set the username in state
+          setUsername(response.data.name);
           setIsAuthenticated(true);
           setUser(response.data);
         }
@@ -88,21 +88,23 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
         : '/profile-placeholder.png',
       template: person.gender === 'Male' ? 'john_male' : 'john_female',
     }));
-  
-    if (familyTreeInstance.current) {
-      familyTreeInstance.current.clear();
+
+    if (!familyTreeInstance.current) {
+      // Initialize FamilyTree only once
+      familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
+        template: 'john',
+        nodeTreeMenu: true,
+        nodes: nodes,
+        nodeBinding: {
+          field_0: 'name',
+          field_1: 'birthdate',
+          img_0: 'img',
+        },
+      });
+    } else {
+      // Update nodes dynamically without re-initializing
+      familyTreeInstance.current.load(nodes);
     }
-  
-    familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
-      template: 'john',
-      nodeTreeMenu: true,
-      nodes: nodes,
-      nodeBinding: {
-        field_0: 'name',
-        field_1: 'birthdate',
-        img_0: 'img',
-      },
-    });
   };
 
   const deleteFamilyMember = (memberId) => {
@@ -114,9 +116,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
       },
     })
     .then(() => {
-      setIndividuals((prev) => prev.filter((member) => member.memberId !== memberId)); // Remove from state
-      familyTreeInstance.current.removeNode(memberId); // Update the family tree visualization
-      renderFamilyTree(); // Re-render the family tree to reflect changes
+      fetchFamilyMembers(); // Re-fetch family members to update the tree
     })
     .catch((error) => {
       console.error('Error deleting family member:', error);
@@ -150,7 +150,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
       },
     })
     .then(() => {
-      fetchFamilyMembers();
+      fetchFamilyMembers(); // Re-fetch family members to update the tree
       setNewPerson({ name: '', sex: 'Male', birthdate: '', deathdate: '', additionalInfo: '', isPrivate: false });
       closeModal();
     })
@@ -170,19 +170,19 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
           <button className="icon-button"><FaBell /></button>
           <button className="icon-button"><FaQuestionCircle /></button>
           <button className="btn btn-link person-name" onClick={() => navigate('/account')}>
-            {username || "User"} {/* Display the actual username or "User" if not loaded */}
+            {username || "User"}
           </button>
         </div>
       </div>
-
+  
       <div className="tree-action-header">
         <div className="tree-info">
           <span>{individuals.length} of {individuals.length} people</span>
         </div>
       </div>
-
+  
       <div className="tree-view-section">
-        
+        {/* Show the welcome message and add button when there are no individuals */}
         {individuals.length === 0 && (
           <div className="add-individual">
             <h2>Welcome to your family tree! Start here:</h2>
@@ -192,16 +192,19 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
             </button>
           </div>
         )}
-
-        <div ref={treeContainerRef} className="tree-view-section" style={{ width: '100%', height: '600px' }}></div>
+  
+        {/* Only render the family tree container if there are individuals */}
+        {individuals.length > 0 && (
+          <div ref={treeContainerRef} className="tree-view-section" style={{ width: '100%', height: '600px' }}></div>
+        )}
       </div>
-
+  
       {individuals.length > 0 && (
         <button className="floating-add-button" onClick={openModal} title="Add Individual">
           +
         </button>
       )}
-
+  
       {individuals.length > 0 && (
         <div className="delete-buttons-container">
           {individuals.map((person) => (
@@ -211,7 +214,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
           ))}
         </div>
       )}
-
+  
       {isModalOpen && (
         <div className="d-flex justify-content-center align-items-center" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1000 }}>
           <div className="modal-content p-4" style={{ width: '400px', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}>
@@ -241,8 +244,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
                 <label htmlFor="additionalInfo">Additional Info</label>
                 <textarea className="form-control" id="additionalInfo" name="additionalInfo" placeholder="Additional information" value={newPerson.additionalInfo} onChange={handleInputChange} />
               </div>
-              <div className="form-group">
-              </div>
               <div className="form-buttons d-flex justify-content-between">
                 <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Create</button>
@@ -253,6 +254,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
       )}
     </div>
   );
+
 };
 
 export default FamilyTreePage;
