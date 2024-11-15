@@ -27,9 +27,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   });
 
   const [newRelationship, setNewRelationship] = useState({
-    fid: '', // Father ID
-    mid: '', // Mother ID
-    pid: '', // Partner (spouse) ID
+    fid: '',
+    mid: '',
+    pid: '',
   });
 
   useEffect(() => {
@@ -52,16 +52,17 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   }, [individuals]);
 
   const fetchUser = () => {
-    axios.get('http://localhost:8080/api/login', { withCredentials: true })
-      .then(response => {
+    axios
+      .get('http://localhost:8080/api/login', { withCredentials: true })
+      .then((response) => {
         if (response.data && response.data.name) {
           setUsername(response.data.name);
           setIsAuthenticated(true);
           setUser(response.data);
         }
       })
-      .catch(error => {
-        console.error("User not authenticated:", error);
+      .catch((error) => {
+        console.error('User not authenticated:', error);
         setIsAuthenticated(false);
       });
   };
@@ -70,76 +71,100 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
     const accessToken = localStorage.getItem('accessToken');
     if (!treeId) return;
 
-    axios.get('/demo/getFamilyMembersInTree', {
-      params: { treeId },
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    .then((response) => {
-      setIndividuals(response.data);
-    })
-    .catch((error) => {
-      console.error('Error fetching family members:', error);
-    });
+    axios
+      .get('/demo/getFamilyMembersInTree', {
+        params: { treeId },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      .then((response) => {
+        setIndividuals(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching family members:', error);
+      });
   };
 
   const renderFamilyTree = () => {
     if (!treeContainerRef.current) {
-      console.error("Tree container is not mounted yet.");
+      console.error('Tree container is not mounted yet.');
       return;
     }
 
     const nodes = individuals.map((person) => ({
       id: person.memberId,
       name: person.name,
-      pids: person.pid ? [person.pid] : [], // Partner (spouse) ID array for horizontal alignment
-      mid: person.mid || null, // Mother ID
-      fid: person.fid || null, // Father ID
-      gender: person.gender === "Male" ? "M" : "F",
-      img: person.img || "/profile-placeholder.png", // Placeholder if no image is provided
+      pids: person.pid ? [person.pid] : [],
+      mid: person.mid || null,
+      fid: person.fid || null,
+      gender: person.gender === 'Male' ? 'M' : 'F',
+      img: person.img || '/profile-placeholder.png',
     }));
 
     if (familyTreeInstance.current) {
       familyTreeInstance.current.destroy();
     }
 
-    // Initialize the FamilyTree with nodes and settings
     familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
-      template: "john",
-      layout: FamilyTree.ROUNDED, // Neat layout
+      template: 'john',
+      layout: FamilyTree.ROUNDED,
       nodeTreeMenu: true,
       nodes: nodes,
       menu: {
-        pdf: { text: "Export PDF" },
-        png: { text: "Export PNG" },
-        svg: { text: "Export SVG" },
-        csv: { text: "Export CSV" },
-        xml: { text: "Export XML" },
-        json: { text: "Export JSON" }
+        pdfPreview: {
+          text: 'PDF Preview',
+          icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+          onClick: previewPDF,
+        },
+        exportPDF: {
+          text: 'Export PDF',
+          icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+          onClick: exportPDF,
+        },
       },
       nodeBinding: {
-        field_0: "name",
-        img_0: "img",
+        field_0: 'name',
+        img_0: 'img',
       },
       connectors: {
-        type: 'step', // Clean connector layout
+        type: 'step',
       },
     });
   };
 
+  const previewPDF = () => {
+    if (familyTreeInstance.current) {
+      FamilyTree.pdfPrevUI.show(familyTreeInstance.current, {
+        format: 'A4',
+        padding: 150,
+        landscape: true,
+      });
+    }
+  };
+
+  const exportPDF = () => {
+    if (familyTreeInstance.current) {
+      familyTreeInstance.current.exportPDF({
+        format: 'A4',
+        padding: 50,
+      });
+    }
+  };
+
   const deleteFamilyMember = (memberId) => {
     const accessToken = localStorage.getItem('accessToken');
-    axios.post('/demo/deleteFamilyMember', new URLSearchParams({ memberId: memberId.toString() }), {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    })
-    .then(() => {
-      fetchFamilyMembers();
-    })
-    .catch((error) => {
-      console.error('Error deleting family member:', error);
-    });
+    axios
+      .post('/demo/deleteFamilyMember', new URLSearchParams({ memberId: memberId.toString() }), {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
+      .then(() => {
+        fetchFamilyMembers();
+      })
+      .catch((error) => {
+        console.error('Error deleting family member:', error);
+      });
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -165,19 +190,20 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
     if (newRelationship.mid) formData.append('mid', newRelationship.mid);
     if (newRelationship.pid) formData.append('pid', newRelationship.pid);
 
-    axios.post('/demo/addFamilyMember', formData, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    })
-    .then(() => {
-      fetchFamilyMembers();
-      setNewPerson({ name: '', sex: 'Male', birthdate: '', deathdate: '', additionalInfo: '', isPrivate: false });
-      setNewRelationship({ fid: '', mid: '', pid: '' });
-      closeModal();
-    })
-    .catch((error) => console.error('Error adding family member:', error));
+    axios
+      .post('/demo/addFamilyMember', formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
+      .then(() => {
+        fetchFamilyMembers();
+        setNewPerson({ name: '', sex: 'Male', birthdate: '', deathdate: '', additionalInfo: '', isPrivate: false });
+        setNewRelationship({ fid: '', mid: '', pid: '' });
+        closeModal();
+      })
+      .catch((error) => console.error('Error adding family member:', error));
   };
 
   const handleInputChange = (e) => {
