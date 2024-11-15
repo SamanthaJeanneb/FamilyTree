@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaBell, FaQuestionCircle, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaBell, FaQuestionCircle, FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './FamilyTreePage.css';
 import axios from 'axios';
 import FamilyTree from '@balkangraph/familytree.js';
 
-const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
+const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { treeId } = location.state || {}; 
+  const { treeId } = location.state || {};
   const { treeName } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [individuals, setIndividuals] = useState([]);
-  const userId = 1; 
+  const [username, setUsername] = useState('');
+  const userId = 1;
   const treeContainerRef = useRef(null);
   const familyTreeInstance = useRef(null);
 
@@ -25,13 +26,22 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
     isPrivate: false,
   });
 
+  const [newRelationship, setNewRelationship] = useState({
+    fid: '', // Father ID
+    mid: '', // Mother ID
+    pid: '', // Partner (spouse) ID
+  });
+
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       setUser(null);
       navigate('/');
-    } else if (treeId && userId) {
-      fetchFamilyMembers();
+    } else {
+      fetchUser();
+      if (treeId && userId) {
+        fetchFamilyMembers();
+      }
     }
   }, [treeId, userId]);
 
@@ -40,6 +50,21 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
       renderFamilyTree();
     }
   }, [individuals]);
+
+  const fetchUser = () => {
+    axios.get('http://localhost:8080/api/login', { withCredentials: true })
+      .then(response => {
+        if (response.data && response.data.name) {
+          setUsername(response.data.name);
+          setIsAuthenticated(true);
+          setUser(response.data);
+        }
+      })
+      .catch(error => {
+        console.error("User not authenticated:", error);
+        setIsAuthenticated(false);
+      });
+  };
 
   const fetchFamilyMembers = () => {
     const accessToken = localStorage.getItem('accessToken');
@@ -58,26 +83,45 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
   };
 
   const renderFamilyTree = () => {
+    if (!treeContainerRef.current) {
+      console.error("Tree container is not mounted yet.");
+      return;
+    }
+
     const nodes = individuals.map((person) => ({
       id: person.memberId,
       name: person.name,
-      birthdate: person.birthdate,
-      gender: person.gender,
-      additionalInfo: person.additionalInfo,
-      img: person.gender === 'Male' ? 'https://balkangraph.com/js/img/john-m.png' : 'https://balkangraph.com/js/img/john-f.png',
+      pids: person.pid ? [person.pid] : [], // Partner (spouse) ID array for horizontal alignment
+      mid: person.mid || null, // Mother ID
+      fid: person.fid || null, // Father ID
+      gender: person.gender === "Male" ? "M" : "F",
+      img: person.img || "/profile-placeholder.png", // Placeholder if no image is provided
     }));
 
     if (familyTreeInstance.current) {
-      familyTreeInstance.current.clear(); // Clear the old tree before re-rendering
+      familyTreeInstance.current.destroy();
     }
 
+    // Initialize the FamilyTree with nodes and settings
     familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
-      template: 'john',
+      template: "john",
+      layout: FamilyTree.ROUNDED, // Neat layout
+      nodeTreeMenu: true,
       nodes: nodes,
+      menu: {
+        pdf: { text: "Export PDF" },
+        png: { text: "Export PNG" },
+        svg: { text: "Export SVG" },
+        csv: { text: "Export CSV" },
+        xml: { text: "Export XML" },
+        json: { text: "Export JSON" }
+      },
       nodeBinding: {
-        field_0: 'name',
-        field_1: 'birthdate',
-        img_0: 'img',
+        field_0: "name",
+        img_0: "img",
+      },
+      connectors: {
+        type: 'step', // Clean connector layout
       },
     });
   };
@@ -91,9 +135,7 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
       },
     })
     .then(() => {
-      setIndividuals((prev) => prev.filter((member) => member.memberId !== memberId)); // Remove from state
-      familyTreeInstance.current.removeNode(memberId); // Update the family tree visualization
-      renderFamilyTree(); // Re-render the family tree to reflect changes
+      fetchFamilyMembers();
     })
     .catch((error) => {
       console.error('Error deleting family member:', error);
@@ -119,6 +161,9 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
     if (formattedDeathdate) formData.append('deathdate', formattedDeathdate);
     if (newPerson.additionalInfo) formData.append('additionalInfo', newPerson.additionalInfo);
     formData.append('isPrivate', newPerson.isPrivate.toString());
+    if (newRelationship.fid) formData.append('fid', newRelationship.fid);
+    if (newRelationship.mid) formData.append('mid', newRelationship.mid);
+    if (newRelationship.pid) formData.append('pid', newRelationship.pid);
 
     axios.post('/demo/addFamilyMember', formData, {
       headers: {
@@ -129,6 +174,7 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
     .then(() => {
       fetchFamilyMembers();
       setNewPerson({ name: '', sex: 'Male', birthdate: '', deathdate: '', additionalInfo: '', isPrivate: false });
+      setNewRelationship({ fid: '', mid: '', pid: '' });
       closeModal();
     })
     .catch((error) => console.error('Error adding family member:', error));
@@ -139,6 +185,11 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
     setNewPerson((prevPerson) => ({ ...prevPerson, [name]: value }));
   };
 
+  const handleRelationshipChange = (e) => {
+    const { name, value } = e.target;
+    setNewRelationship((prevRel) => ({ ...prevRel, [name]: value }));
+  };
+
   return (
     <div className="tree-page-container">
       <div className="tree-page-header">
@@ -146,7 +197,9 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
         <div className="d-flex align-items-center">
           <button className="icon-button"><FaBell /></button>
           <button className="icon-button"><FaQuestionCircle /></button>
-          <button className="icon-button person-name" onClick={() => navigate('/account')}>Person Name</button>
+          <button className="btn btn-link person-name" onClick={() => navigate('/account')}>
+            {username || "User"}
+          </button>
         </div>
       </div>
 
@@ -157,7 +210,6 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
       </div>
 
       <div className="tree-view-section">
-        
         {individuals.length === 0 && (
           <div className="add-individual">
             <h2>Welcome to your family tree! Start here:</h2>
@@ -168,7 +220,9 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
           </div>
         )}
 
-        <div ref={treeContainerRef} className="tree-view-section" style={{ width: '100%', height: '600px' }}></div>
+        {individuals.length > 0 && (
+          <div ref={treeContainerRef} className="tree-view-section" style={{ width: '100%', height: '600px' }}></div>
+        )}
       </div>
 
       {individuals.length > 0 && (
@@ -181,7 +235,7 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
         <div className="delete-buttons-container">
           {individuals.map((person) => (
             <button key={person.memberId} onClick={() => deleteFamilyMember(person.memberId)} className="btn btn-danger">
-              <FaTrash /> Delete
+              <FaTrash /> {person.name}
             </button>
           ))}
         </div>
@@ -216,10 +270,62 @@ const FamilyTreePage = ({ numberOfPeople, setIsAuthenticated, setUser }) => {
                 <label htmlFor="additionalInfo">Additional Info</label>
                 <textarea className="form-control" id="additionalInfo" name="additionalInfo" placeholder="Additional information" value={newPerson.additionalInfo} onChange={handleInputChange} />
               </div>
+
+              {/* Relationship fields */}
               <div className="form-group">
-                <label htmlFor="isPrivate">Private</label>
-                <input type="checkbox" id="isPrivate" name="isPrivate" checked={newPerson.isPrivate} onChange={(e) => setNewPerson(prev => ({ ...prev, isPrivate: e.target.checked }))} />
+                <label htmlFor="fatherId">Father</label>
+                <select
+                  className="form-control"
+                  id="fatherId"
+                  name="fid"
+                  value={newRelationship.fid}
+                  onChange={handleRelationshipChange}
+                >
+                  <option value="">Select Father</option>
+                  {individuals.filter(individual => individual.gender === 'Male').map((individual) => (
+                    <option key={individual.memberId} value={individual.memberId}>
+                      {individual.name}
+                    </option>
+                  ))}
+                </select>
               </div>
+
+              <div className="form-group">
+                <label htmlFor="motherId">Mother</label>
+                <select
+                  className="form-control"
+                  id="motherId"
+                  name="mid"
+                  value={newRelationship.mid}
+                  onChange={handleRelationshipChange}
+                >
+                  <option value="">Select Mother</option>
+                  {individuals.filter(individual => individual.gender === 'Female').map((individual) => (
+                    <option key={individual.memberId} value={individual.memberId}>
+                      {individual.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="partnerId">Partner</label>
+                <select
+                  className="form-control"
+                  id="partnerId"
+                  name="pid"
+                  value={newRelationship.pid}
+                  onChange={handleRelationshipChange}
+                >
+                  <option value="">Select Partner</option>
+                  {individuals.map((individual) => (
+                    <option key={individual.memberId} value={individual.memberId}>
+                      {individual.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="form-buttons d-flex justify-content-between">
                 <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Create</button>
