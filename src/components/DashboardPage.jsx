@@ -264,7 +264,7 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
           </div>
         </nav>
 
-        <div className="container">
+        <div className="containercustom">
           <div className="row">
             {/* Create New Tree Card */}
             <div className="col-md-3 mb-4">

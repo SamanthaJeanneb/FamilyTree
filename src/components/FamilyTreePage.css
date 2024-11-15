@@ -4,6 +4,7 @@
   background-color: #f4f4f4;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .tree-page-header {

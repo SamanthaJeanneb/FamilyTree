@@ -220,7 +220,7 @@
   padding: 1.5%;
   border-radius: 3%;
   width: 28vw;
-  height: 33vh; 
+  height: 40vh; 
   box-shadow: 7px 5px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -335,4 +335,8 @@
   text-align: center;
   font-size: 0.9rem;
   color: #888;
+}
+
+.containercustom {
+  padding-left: 4vw;
 }
