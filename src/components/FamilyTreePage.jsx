@@ -8,7 +8,7 @@ import FamilyTree from '@balkangraph/familytree.js';
 const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { treeId } = location.state || {}; 
+  const { treeId } = location.state || {};
   const { treeName } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [individuals, setIndividuals] = useState([]);
@@ -26,13 +26,19 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
     isPrivate: false,
   });
 
+  const [newRelationship, setNewRelationship] = useState({
+    fid: '', // Father ID
+    mid: '', // Mother ID
+    pid: '', // Partner (spouse) ID
+  });
+
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       setUser(null);
       navigate('/');
     } else {
-      fetchUser(); 
+      fetchUser();
       if (treeId && userId) {
         fetchFamilyMembers();
       }
@@ -77,34 +83,47 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   };
 
   const renderFamilyTree = () => {
+    if (!treeContainerRef.current) {
+      console.error("Tree container is not mounted yet.");
+      return;
+    }
+
     const nodes = individuals.map((person) => ({
       id: person.memberId,
       name: person.name,
-      birthdate: person.birthdate,
-      gender: person.gender,
-      additionalInfo: person.additionalInfo,
-      img: person.gender === 'Male' 
-        ? '/profile-placeholder.png'
-        : '/profile-placeholder.png',
-      template: person.gender === 'Male' ? 'john_male' : 'john_female',
+      pids: person.pid ? [person.pid] : [], // Partner (spouse) ID array for horizontal alignment
+      mid: person.mid || null, // Mother ID
+      fid: person.fid || null, // Father ID
+      gender: person.gender === "Male" ? "M" : "F",
+      img: person.img || "/profile-placeholder.png", // Placeholder if no image is provided
     }));
 
-    if (!familyTreeInstance.current) {
-      // Initialize FamilyTree only once
-      familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
-        template: 'john',
-        nodeTreeMenu: true,
-        nodes: nodes,
-        nodeBinding: {
-          field_0: 'name',
-          field_1: 'birthdate',
-          img_0: 'img',
-        },
-      });
-    } else {
-      // Update nodes dynamically without re-initializing
-      familyTreeInstance.current.load(nodes);
+    if (familyTreeInstance.current) {
+      familyTreeInstance.current.destroy();
     }
+
+    // Initialize the FamilyTree with nodes and settings
+    familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
+      template: "john",
+      layout: FamilyTree.ROUNDED, // Neat layout
+      nodeTreeMenu: true,
+      nodes: nodes,
+      menu: {
+        pdf: { text: "Export PDF" },
+        png: { text: "Export PNG" },
+        svg: { text: "Export SVG" },
+        csv: { text: "Export CSV" },
+        xml: { text: "Export XML" },
+        json: { text: "Export JSON" }
+      },
+      nodeBinding: {
+        field_0: "name",
+        img_0: "img",
+      },
+      connectors: {
+        type: 'step', // Clean connector layout
+      },
+    });
   };
 
   const deleteFamilyMember = (memberId) => {
@@ -116,7 +135,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
       },
     })
     .then(() => {
-      fetchFamilyMembers(); // Re-fetch family members to update the tree
+      fetchFamilyMembers();
     })
     .catch((error) => {
       console.error('Error deleting family member:', error);
@@ -142,6 +161,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
     if (formattedDeathdate) formData.append('deathdate', formattedDeathdate);
     if (newPerson.additionalInfo) formData.append('additionalInfo', newPerson.additionalInfo);
     formData.append('isPrivate', newPerson.isPrivate.toString());
+    if (newRelationship.fid) formData.append('fid', newRelationship.fid);
+    if (newRelationship.mid) formData.append('mid', newRelationship.mid);
+    if (newRelationship.pid) formData.append('pid', newRelationship.pid);
 
     axios.post('/demo/addFamilyMember', formData, {
       headers: {
@@ -150,8 +172,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
       },
     })
     .then(() => {
-      fetchFamilyMembers(); // Re-fetch family members to update the tree
+      fetchFamilyMembers();
       setNewPerson({ name: '', sex: 'Male', birthdate: '', deathdate: '', additionalInfo: '', isPrivate: false });
+      setNewRelationship({ fid: '', mid: '', pid: '' });
       closeModal();
     })
     .catch((error) => console.error('Error adding family member:', error));
@@ -160,6 +183,11 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewPerson((prevPerson) => ({ ...prevPerson, [name]: value }));
+  };
+
+  const handleRelationshipChange = (e) => {
+    const { name, value } = e.target;
+    setNewRelationship((prevRel) => ({ ...prevRel, [name]: value }));
   };
 
   return (
@@ -174,15 +202,14 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
           </button>
         </div>
       </div>
-  
+
       <div className="tree-action-header">
         <div className="tree-info">
           <span>{individuals.length} of {individuals.length} people</span>
         </div>
       </div>
-  
+
       <div className="tree-view-section">
-        {/* Show the welcome message and add button when there are no individuals */}
         {individuals.length === 0 && (
           <div className="add-individual">
             <h2>Welcome to your family tree! Start here:</h2>
@@ -192,29 +219,28 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
             </button>
           </div>
         )}
-  
-        {/* Only render the family tree container if there are individuals */}
+
         {individuals.length > 0 && (
           <div ref={treeContainerRef} className="tree-view-section" style={{ width: '100%', height: '600px' }}></div>
         )}
       </div>
-  
+
       {individuals.length > 0 && (
         <button className="floating-add-button" onClick={openModal} title="Add Individual">
           +
         </button>
       )}
-  
+
       {individuals.length > 0 && (
         <div className="delete-buttons-container">
           {individuals.map((person) => (
             <button key={person.memberId} onClick={() => deleteFamilyMember(person.memberId)} className="btn btn-danger">
-              <FaTrash /> Delete
+              <FaTrash /> {person.name}
             </button>
           ))}
         </div>
       )}
-  
+
       {isModalOpen && (
         <div className="d-flex justify-content-center align-items-center" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1000 }}>
           <div className="modal-content p-4" style={{ width: '400px', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}>
@@ -244,6 +270,62 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
                 <label htmlFor="additionalInfo">Additional Info</label>
                 <textarea className="form-control" id="additionalInfo" name="additionalInfo" placeholder="Additional information" value={newPerson.additionalInfo} onChange={handleInputChange} />
               </div>
+
+              {/* Relationship fields */}
+              <div className="form-group">
+                <label htmlFor="fatherId">Father</label>
+                <select
+                  className="form-control"
+                  id="fatherId"
+                  name="fid"
+                  value={newRelationship.fid}
+                  onChange={handleRelationshipChange}
+                >
+                  <option value="">Select Father</option>
+                  {individuals.filter(individual => individual.gender === 'Male').map((individual) => (
+                    <option key={individual.memberId} value={individual.memberId}>
+                      {individual.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="motherId">Mother</label>
+                <select
+                  className="form-control"
+                  id="motherId"
+                  name="mid"
+                  value={newRelationship.mid}
+                  onChange={handleRelationshipChange}
+                >
+                  <option value="">Select Mother</option>
+                  {individuals.filter(individual => individual.gender === 'Female').map((individual) => (
+                    <option key={individual.memberId} value={individual.memberId}>
+                      {individual.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="partnerId">Partner</label>
+                <select
+                  className="form-control"
+                  id="partnerId"
+                  name="pid"
+                  value={newRelationship.pid}
+                  onChange={handleRelationshipChange}
+                >
+                  <option value="">Select Partner</option>
+                  {individuals.map((individual) => (
+                    <option key={individual.memberId} value={individual.memberId}>
+                      {individual.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="form-buttons d-flex justify-content-between">
                 <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Create</button>
@@ -254,7 +336,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
       )}
     </div>
   );
-
 };
 
 export default FamilyTreePage;
