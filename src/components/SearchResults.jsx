@@ -21,18 +21,29 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
         setShowNotifications(prevShowNotifications => !prevShowNotifications);
     }
 
-    const handleNotificationClick = async (id, url) => {
+    const handleNotificationClick = async (id, action, treeId) => {
         try {
-            // Deletes notification in the server
-            const response = await axios.delete(`/demo/notifications/delete?userId=${userId}&notificationId=${id}`);
-            if (response.data === "Notification deleted successfully.") {
-                // Deletes notification in the display
-                setNotifications(prevNotifications => prevNotifications.filter(notification => notification.id !== id));
-            }
+          const url =
+              action === 'accept'
+                  ? `/demo/acceptCollaboration?collaborationId=${id}`
+                  : `/demo/declineCollaboration?collaborationId=${id}`;
+    
+          const response = await axios.post(url, {}, { withCredentials: true });
+    
+          if (response.data.includes('accepted') || response.data.includes('declined')) {
+            // Remove notification from display
+            setNotifications((prev) =>
+                prev.filter((notification) => notification.id !== id)
+            );
+            setMessage(`Collaboration ${action}ed successfully.`);
+          }
         } catch (error) {
-            console.error("Error deleting notification:", error);
+          console.error('Error handling collaboration:', error);
+          setMessage(`Error: ${error.message}`);
         }
-    }
+    
+        navigate(url);
+      };
 
     useEffect(() => {
         getPublicTrees();
