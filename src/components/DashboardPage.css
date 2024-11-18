@@ -152,7 +152,7 @@
   right: 0;
   z-index: 1;
   background-color: #ffffff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -257,7 +257,7 @@
   padding: 1.5%;
   border-radius: 3%;
   width: 28vw;
-  height: 40vh; 
+  height: 40vh;
   box-shadow: 7px 5px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -271,12 +271,12 @@
 .create-prompt-image {
   width: 40%;
   height: auto;
-  margin-right: 15px; 
+  margin-right: 15px;
   opacity: 0.5;
 }
 
 .create-prompt-form {
-  width: 50%; 
+  width: 50%;
 }
 
 #tree-name {
@@ -287,7 +287,7 @@
   background-color: white;
   border-radius: 10% / 100%;
   border-color: white;
-  padding: 0 5%; 
+  padding: 0 5%;
 }
 
 #tree-name::placeholder {
@@ -297,15 +297,15 @@
 .button-container {
   display: flex;
   justify-content: flex-start;
-  gap: 10px; 
+  gap: 10px;
   margin-top: 15px;
 }
 
 .radio-group {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; 
-  width: 100%; 
+  align-items: flex-start;
+  width: 100%;
   margin-top: 10px;
 }
 
@@ -316,7 +316,7 @@
   cursor: pointer;
   border: none;
   font-size: 16px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
   transition: box-shadow 0.2s ease;
 }
 
@@ -374,6 +374,27 @@
   color: #888;
 }
 
-.containercustom {
+.container-custom {
   padding-left: 4vw;
+  background: white !important;
+}
+
+
+.notification-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.notification-count {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.8rem;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 0.2em 0.5em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
