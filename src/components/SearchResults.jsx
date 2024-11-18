@@ -1,31 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaSearch } from 'react-icons/fa';
-import { Trash, Star, Network, PanelsTopLeft } from 'lucide-react';
-// import { GoogleLogin } from '@react-oauth/google';
+import { Star, Network, PanelsTopLeft } from 'lucide-react';
 import './SearchResults.css';
+import axios from "axios";
+import { FaBell, FaQuestionCircle, FaPlus } from 'react-icons/fa';
 
-const SearchResults = () => {
+const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState(new URLSearchParams(location.search).get('query') || '');
     const [trees, setTrees] = useState([]);
     const [message, setMessage] = useState('');
+    const [username, setUsername] = useState(''); // State to store username
+    const userId = 1; // Hardcoded user ID for testing
+    const [notifications, setNotifications] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
 
-    const handleGoogleLoginSuccess = (response) => {
-        console.log('Google Login Success:', response);
-        setIsAuthenticated(true);
-    };
+    const toggleNotifications = () => {
+        setShowNotifications(prevShowNotifications => !prevShowNotifications);
+    }
 
-    const handleGoogleLoginFailure = (error) => {
-        console.error('Google Login Failure:', error);
-    };
+    const handleNotificationClick = async (id, url) => {
+        try {
+            // Deletes notification in the server
+            const response = await axios.delete(`/demo/notifications/delete?userId=${userId}&notificationId=${id}`);
+            if (response.data === "Notification deleted successfully.") {
+                // Deletes notification in the display
+                setNotifications(prevNotifications => prevNotifications.filter(notification => notification.id !== id));
+            }
+        } catch (error) {
+            console.error("Error deleting notification:", error);
+        }
+    }
 
     useEffect(() => {
         getPublicTrees();
+
+        const accessToken = localStorage.getItem('accessToken'); // Retrieve the token from localStorage
+        if (!accessToken) {
+            console.error("User not authenticated");
+            setUser(null);
+        } else {
+            fetchUser();
+            fetchNotifications();
+        }
+
     }, []);
 
-    /* {"data":[{"treeId":3,"treeName":"kjh","ownerUsername":"NewUser"}],"message":"Public family trees retrieved successfully.","status":"success"} */
+    {/*Fetch Notifications*/ }
+    const fetchNotifications = async () => {
+        try {
+            const response = await fetch(`/demo/notifications/${userId}`);
+            if (!response.ok) throw new Error(`Error: ${response.status}`);
+
+            const data = await response.json();
+            console.log("Fetched Notifications:", data);
+            setNotifications(data);
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+            setMessage(`Error fetching notifications: ${error.message}`);
+        }
+    };
+
 
     const getPublicTrees = async () => {
         try {
@@ -43,39 +80,57 @@ const SearchResults = () => {
     const openTree = (treeName) => navigate(`/tree/${encodeURIComponent(treeName)}`);
 
 
-        return (
-            <div className="guest-dashboard-container">
-                <div className="sidebar">
-                    <img src="/familytreelogo.png" alt="Tree" className="dashboard-logo" />
-                    <nav className="nav-links">
-                        <a href="#" className="active">Search Public Trees</a>
-                        <a className="tree-icon">
-                            <Network />
-                            <a href="#">Your Trees</a> </a>
-                        <a className="star-icon">
-                            <Star />
-                            <a href="#">Saved Trees</a> </a>
-                        <a className="collabPage-icon">
-                            <PanelsTopLeft />
-                            <a href="#">Collaborator Trees</a> </a>
-                    </nav>
-                </div>
-                <div className="guest-main-content">
-                    <div className="top-bar">
-                    <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'rgb(73, 73, 73)' }}>Search Public Trees</h1>
-                        <div className="google-login-button">
-                            <button className="google-login-button">
-                                <img
-                                    src="/google.png"
-                                    alt="Google logo"
-                                    className="google-logo"
-                                />
-                                Sign in with Google
-                            </button>
-                        </div>
+    const fetchUser = () => {
+        axios.get('http://localhost:8080/api/login', { withCredentials: true })
+            .then(response => {
+                if (response.data) {
+                    if (response.data.token) {
+                        localStorage.setItem('accessToken', response.data.token);
+                        setIsAuthenticated(true);
+                        setUser(response.data);
+                        setUsername(response.data.name);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("User not authenticated:", error);
+                setIsAuthenticated(false);
+            });
+    }
+
+    const handleGoogleLogin = () => {
+        // Redirect to the backend Google OAuth2 authorization endpoint
+        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+      };
+
+
+    return (
+        <div className="guest-dashboard-container">
+            <div className="sidebar">
+                <img src="/familytreelogo.png" alt="Tree" className="dashboard-logo" />
+                <nav className="nav-links">
+                    <a href="#" className="active">Search Public Trees</a>
+                    <div className="tree-icon">
+                        <Network />
+                        <a href="#">Your Trees</a>
                     </div>
-                    <div className="search-section-res">
-                        <div className="search-bar2">
+                    <div className="star-icon">
+                        <Star />
+                        <a href="#">Saved Trees</a>
+                    </div>
+                    <div className="collabPage-icon">
+                        <PanelsTopLeft />
+                        <a href="#">Collaborator Trees</a>
+                    </div>
+                </nav>
+            </div>
+            <div className="container-fluid m-0 p-0 sr-bg" style={{ background: 'linear-gradient(#a5d6a7, #34c759)' }}>
+                <div className="row align-items-center sr-top-bar p-2 m-0">
+                    <div className="col-sm d-flex justify-content-start">
+                        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'rgb(73, 73, 73)' }}>Search Public Trees</h1>
+                    </div>
+                    <div className="col-sm">
+                        <div className="search-bar2 d-flex">
                             <input
                                 type="text"
                                 placeholder="Search for family trees"
@@ -91,34 +146,78 @@ const SearchResults = () => {
                                 <FaSearch />
                             </button>
                         </div>
-                        <div className="search-results">
-                            <h1>Displaying Results for "{searchTerm}"</h1>
-                            <div className="container">
-                                <div className="row">
-                                    {/* Existing Tree Cards */}
-                                    {trees.filter(tree => tree.treeName.toLowerCase().includes(searchTerm.toLowerCase()))
-                                        .map((tree) => (
-                                            <div
-                                                className="col-md-3 mb-4"
-                                                key={tree.id}
-                                            >
-                                                <div className="card tree-card" onClick={() => openTree(tree.treeName)}>
-                                                    <img src="placeholder.png" className="card-img-top tree-image" alt={tree.treeName} />
-                                                    <div className="card-body text-center">
-                                                        <h5 className="card-title tree-title">{tree.treeName}</h5>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                </div>
-                            </div>
-                        </div>
-                        {message && <p style={{ padding: '20px', color: message.includes('Success') ? 'green' : 'red' }}>{message}</p>}
                     </div>
+                    {!username && (
+                        <div className="col-sm d-flex justify-content-end google-login-button">
+                            <button onClick={handleGoogleLogin}>
+                                <img
+                                    src="/google.png"
+                                    alt="Google logo"
+                                    className="google-logo"
+                                />
+                                Sign in with Google
+                            </button>
+                        </div>
+                    )}
+                    {username && (
+                        <div className="col-sm d-flex justify-content-end">
+                            <button className="btn btn-link" onClick={toggleNotifications}>
+                                <FaBell />
+                            </button>
+
+                            {/* Notification Dropdown */}
+                            {/* CHANGE ALL INSTANCES OF "demoNotifications" TO "notifications".*/}
+                            {showNotifications && (
+                                <div className="notification-dropdown">
+                                    <h5>Notifications</h5>
+                                    {notifications.length > 0 ? (
+                                        notifications.map((notification) => (
+                                            <div key={notification.id} className="notification-item"
+                                                onClick={() => handleNotificationClick(notification.id, notification.url)}
+                                                style={{ cursor: 'pointer', color: '#007bff' }}>
+                                                {notification.message}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="no-notifications">No new notifications</p>
+                                    )}
+                                </div>
+                            )}
+
+                            <button className="btn btn-link">
+                                <FaQuestionCircle />
+                            </button>
+                            <button className="btn btn-link person-name" onClick={() => navigate('/account')}>
+                                {username || "User"} {/* Display actual username or "User" if not loaded */}
+                            </button>
+                        </div>
+                    )}
+                </div>
+                <div className="">
+                    <h1>Displaying Results for "{searchTerm}"</h1>
+                    <div className="container">
+                        <div className="row">
+                            {trees.filter(tree => tree.treeName.toLowerCase().includes(searchTerm.toLowerCase()))
+                                .map((tree) => (
+                                    <div
+                                        className="col-md-3 mb-4"
+                                        key={tree.id}
+                                    >
+                                        <div className="card tree-card" onClick={() => openTree(tree.treeName)}>
+                                            <img src="placeholder.png" className="card-img-top tree-image" alt={tree.treeName} />
+                                            <div className="card-body text-center">
+                                                <h5 className="card-title tree-title">{tree.treeName}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                    {message && <p style={{ padding: '20px', color: message.includes('Success') ? 'green' : 'red' }}>{message}</p>}
                 </div>
             </div>
-        );
-    };
+        </div >
+    );
 
-
-    export default SearchResults;
+}
+export default SearchResults;
