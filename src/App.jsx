@@ -57,7 +57,7 @@ const App = () => {
               <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser}  />} />
               <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
               <Route path="/tree/:treeName" element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} />} />
-              <Route path="/search-results" element={<SearchResults />} />
+              <Route path="/search-results" element={<SearchResults setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser} />} />
               <Route path="/home" element={<HomePage />} />
               <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest} user={user} setUser={setUser} />} />
           </Routes>
