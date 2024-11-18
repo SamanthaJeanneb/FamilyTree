@@ -5,6 +5,7 @@
   width: 100vw;
   font-family: Arial, sans-serif;
 }
+
 /* Tree Card Styles */
 .tree-card {
   height: 350px; /* Set this to the desired consistent height */
@@ -23,6 +24,50 @@
   transition: all 0.3s ease;
   overflow: hidden; /* Prevents content from overflowing */
 }
+.tree-container {
+  position: relative;
+}
+
+.custom-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-color, #eafaf1);
+  border: 1px solid var(--border-color, #8bc34a);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color, #4caf50);
+  max-width: 400px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 80vh;
+  left: 50vw;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+.custom-alert .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--icon-bg, #d9f2e6);
+  border-radius: 50%;
+  height: 24px;
+  width: 45px;
+  margin-right: 12px;
+  color: var(--icon-color, #4caf50);
+}
+
+.custom-alert .close-btn {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: var(--text-color, #4caf50);
+  cursor: pointer;
+}
+
 
 .tree-card:hover {
   transform: scale(1.02);

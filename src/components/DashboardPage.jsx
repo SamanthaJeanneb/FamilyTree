@@ -456,8 +456,30 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
                       </div>
                     </div>
                 )}
+{message && (
+  <div
+    className="custom-alert"
+    style={{
+      "--bg-color": message.includes("Success") ? "#eafaf1" : "#ffecec",
+      "--border-color": message.includes("Success") ? "#8bc34a" : "#f44336",
+      "--text-color": message.includes("Success") ? "#4caf50" : "#f44336",
+      "--icon-bg": message.includes("Success") ? "#d9f2e6" : "#ffe6e6",
+      "--icon-color": message.includes("Success") ? "#4caf50" : "#f44336",
+    }}
+  >
+    <div className="icon">
+      {message.includes("Success") ? "✓" : "✕"}
+    </div>
+    <span>{message}</span>
+    <button className="close-btn" onClick={() => setMessage("")}>
+      ✕
+    </button>
+  </div>
+)}
 
-                {message && <p style={{ padding: '20px', color: message.includes('Success') ? 'green' : 'red' }}>{message}</p>}
+
+
+    
               </>) }
         </div>
       </div>
