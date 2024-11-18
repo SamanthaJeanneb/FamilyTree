@@ -1,9 +1,10 @@
 import React from 'react';
-import { GoogleLogin } from '@react-oauth/google';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import './LoginPage.css';
 
-
 const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
+  const navigate = useNavigate(); // Initialize the navigate function
+
   const handleGoogleLogin = () => {
     // Redirect to the backend Google OAuth2 authorization endpoint
     window.location.href = 'http://localhost:8080/oauth2/authorization/google';
@@ -11,6 +12,11 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
 
   const handleGuestLogin = () => {
     setIsGuest(true);
+  };
+
+  const handleRedirectToTestPage = () => {
+    // Redirect to the test page
+    navigate('/test');
   };
 
   return (
@@ -27,7 +33,7 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
         </div>
       </div>
       <div className="right-section">
-      <div><img src="/treebackground.png" alt="Tree Background" className="tree-background" /></div>
+        <div><img src="/treebackground.png" alt="Tree Background" className="tree-background" /></div>
         <div className="login-box">
           <h2>Sign in</h2>
           <div className="google-login-button">
@@ -45,6 +51,25 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
           </button>
         </div>
       </div>
+
+      {/* Button to redirect to the test page */}
+      <button 
+        className="redirect-button"
+        onClick={handleRedirectToTestPage}
+        style={{
+          position: 'absolute', 
+          top: '20px', 
+          right: '20px', 
+          padding: '10px 20px', 
+          backgroundColor: '#007bff', 
+          color: '#fff', 
+          border: 'none', 
+          borderRadius: '5px',
+          cursor: 'pointer'
+        }}
+      >
+        Go to Test Page
+      </button>
     </div>
   );
 };
