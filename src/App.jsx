@@ -11,6 +11,7 @@ import SearchResults from "./components/SearchResults";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaBullseye } from "react-icons/fa6";
+import FamilyTreePageTest from "./tests/FamilyTreePageTest";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Set to true for authenticated access
@@ -56,6 +57,7 @@ const App = () => {
             />
               <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser}  />} />
               <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
+              <Route path="/test" element={<FamilyTreePageTest />} />
               <Route path="/tree/:treeName" element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} />} />
               <Route path="/search-results" element={<SearchResults setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser} />} />
               <Route path="/home" element={<HomePage />} />

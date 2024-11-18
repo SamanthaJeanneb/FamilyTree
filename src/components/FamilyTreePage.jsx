@@ -31,7 +31,32 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
     mid: '',
     pid: '',
   });
+  useEffect(() => {
+    FamilyTree.templates.john.field_0 =
+      '<text ' + FamilyTree.attr.width + ' ="230" style="font-size: 16px;font-weight:bold;" fill="#aeaeae" x="60" y="135" text-anchor="middle">{val}</text>';
 
+    FamilyTree.templates.john.field_1 =
+      '<text ' + FamilyTree.attr.width + ' ="150" style="font-size: 13px;" fill="#aeaeae" x="60" y="150" text-anchor="middle">{val}</text>';
+
+    FamilyTree.templates.john.img_0 =
+      '<image preserveAspectRatio="xMidYMid slice" xlink:href="{val}" x="6" y="6" width="108" height="108" style="border: none; clip-path: url(#rounded_square);"></image>';
+
+    FamilyTree.templates.john_male = Object.assign({}, FamilyTree.templates.john);
+    FamilyTree.templates.john_male.node = '';
+    FamilyTree.templates.john_male.img_0 =
+      '<image preserveAspectRatio="xMidYMid slice" xlink:href="{val}" x="6" y="6" width="108" height="108" style="border: none; clip-path: url(#rounded_square);"></image>';
+
+    FamilyTree.templates.john_female = Object.assign({}, FamilyTree.templates.john);
+    FamilyTree.templates.john_female.node = '';
+    FamilyTree.templates.john_female.img_0 =
+      '<image preserveAspectRatio="xMidYMid slice" xlink:href="{val}" x="6" y="6" width="108" height="108" style="border: none; clip-path: circle(50% at 50% 50%);"></image>';
+
+    FamilyTree.templates.john.defs = `
+      <clipPath id="rounded_square">
+        <rect x="6" y="6" width="108" height="108" rx="15" ry="15"></rect>
+      </clipPath>
+    `;
+  }, []);
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
@@ -70,66 +95,89 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
   const fetchFamilyMembers = () => {
     const accessToken = localStorage.getItem('accessToken');
     if (!treeId) return;
-
+  
     axios
       .get('/demo/getFamilyMembersInTree', {
         params: { treeId },
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((response) => {
-        setIndividuals(response.data);
+        const data = response.data.map((individual) => ({
+          ...individual,
+          gender: individual.gender ? individual.gender.toLowerCase() : 'other', // Ensure gender is lowercase
+          pid: individual.pid ? [individual.pid] : [], // Ensure pid is an array
+        }));
+  
+        // Ensure bidirectional relationships
+        data.forEach((person) => {
+          person.pid.forEach((partnerId) => {
+            const partner = data.find((ind) => ind.memberId === partnerId);
+            if (partner && !partner.pid.includes(person.memberId)) {
+              partner.pid.push(person.memberId);
+            }
+          });
+        });
+  
+        setIndividuals(data);
       })
       .catch((error) => {
         console.error('Error fetching family members:', error);
       });
   };
-
   const renderFamilyTree = () => {
     if (!treeContainerRef.current) {
       console.error('Tree container is not mounted yet.');
       return;
     }
-
+  
     const nodes = individuals.map((person) => ({
       id: person.memberId,
       name: person.name,
-      pids: person.pid ? [person.pid] : [],
+      pids: person.pid,
       mid: person.mid || null,
       fid: person.fid || null,
-      gender: person.gender === 'Male' ? 'M' : 'F',
+      gender: person.gender, // Use the processed gender
       img: person.img || '/profile-placeholder.png',
+      template: person.gender === 'male' ? 'john_male' : person.gender === 'female' ? 'john_female' : 'john', // Apply correct template
     }));
-
+  
+    console.log('Nodes passed to FamilyTree:', nodes);
+  
     if (familyTreeInstance.current) {
       familyTreeInstance.current.destroy();
     }
-
-    familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
-      template: 'john',
-      layout: FamilyTree.ROUNDED,
-      nodeTreeMenu: true,
-      nodes: nodes,
-      menu: {
-        pdfPreview: {
-          text: 'PDF Preview',
-          icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
-          onClick: previewPDF,
+  
+    try {
+      familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
+        template: 'john',
+        layout: FamilyTree.ROUNDED,
+        nodes: nodes,
+        nodeBinding: {
+          field_0: 'name',
+          img_0: 'img',
         },
-        exportPDF: {
-          text: 'Export PDF',
-          icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
-          onClick: exportPDF,
+        connectors: {
+          type: 'step',
         },
-      },
-      nodeBinding: {
-        field_0: 'name',
-        img_0: 'img',
-      },
-      connectors: {
-        type: 'step',
-      },
-    });
+        menu: {
+          pdfPreview: {
+            text: 'PDF Preview',
+            icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+            onClick: previewPDF,
+          },
+          exportPDF: {
+            text: 'Export PDF',
+            icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+            onClick: exportPDF,
+          },
+        },
+        mode: 'light',
+      });
+    } catch (error) {
+      console.error('Error rendering FamilyTree:', error);
+    }
   };
+  
 
   const previewPDF = () => {
     if (familyTreeInstance.current) {
@@ -308,7 +356,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
                   onChange={handleRelationshipChange}
                 >
                   <option value="">Select Father</option>
-                  {individuals.filter(individual => individual.gender === 'Male').map((individual) => (
+                  {individuals.filter(individual => individual.gender === 'male').map((individual) => (
                     <option key={individual.memberId} value={individual.memberId}>
                       {individual.name}
                     </option>
@@ -326,7 +374,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser }) => {
                   onChange={handleRelationshipChange}
                 >
                   <option value="">Select Mother</option>
-                  {individuals.filter(individual => individual.gender === 'Female').map((individual) => (
+                  {individuals.filter(individual => individual.gender === 'female').map((individual) => (
                     <option key={individual.memberId} value={individual.memberId}>
                       {individual.name}
                     </option>
