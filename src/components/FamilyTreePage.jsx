@@ -203,8 +203,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 
             )
             .then((response) => {
-                if (response.data.status === 'success') {
-                    setInviteMessage(response.data.message);
+                console.log(response)
+                if (response.data === 'Collaboration invitation sent successfully.') {
+                    setInviteMessage(response.data);
                     setTimeout(onClose, 2000); // Close modal after success
                 } else {
                     setInviteMessage(`Error: ${response.data}`);
@@ -300,6 +301,10 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         const { name, value } = e.target;
         setNewPerson((prevPerson) => ({ ...prevPerson, [name]: value }));
     };
+
+    const onClose = () => {
+        setIsInviteModalOpen(false);
+    }
 
     const handleRelationshipChange = (e) => {
         const { name, value } = e.target;
