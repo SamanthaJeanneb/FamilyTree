@@ -4,6 +4,14 @@
     height: 100vh;
 }
 
+.sr-container {
+    margin: 0;
+    display: flex;
+    height: 100vh; /* Full viewport height */
+    width: 100vw;  /* Full viewport width */
+    font-family: Arial, sans-serif;
+  }
+
 
 /* Results Section */--------------------------------------------------------------------------------------------
 
@@ -21,27 +29,12 @@
 
 
 .sr-top-bar {
-    /* background: #f4f4f4;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #333;
-    font-size: 10px; */
-
     background: #f4f4f4 !important;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #333;
     font-size: 10px;
-
-/*     
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    padding: 10px 20px;
-    position: absolute;
-    top: 0; */
 }
 
 .search-bar2 {
@@ -77,3 +70,52 @@
     color: rgb(95, 89, 89);
 }
 
+/* Sidebar */
+.sr-sidebar {
+    width: 280px !important; 
+    background-color: #f4f4f4;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Ensure sidebar takes full height */
+    margin-left: 2px;
+    text-align: left;
+  }
+  
+  .logo {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #34c759;
+  }
+  
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .nav-links a {
+    text-decoration: none;
+    color: black;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .nav-links a:hover,
+  .nav-links a.active {
+    background-color: #34c759;
+    color: white;
+    text-align: center;
+  }
+
+
+  .tree-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+  }
+
+  .star-icon {
+    padding-right: 10px;
+    color: rgb(95, 89, 89);
+  }

@@ -118,23 +118,20 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
 
 
     return (
-        <div className="guest-dashboard-container">
-            <div className="sidebar">
+        <div className="sr-container">
+            <div className="sr-sidebar">
                 <img src="/familytreelogo.png" alt="Tree" className="dashboard-logo" />
                 <nav className="nav-links">
-                    <a href="#" className="active">Search Public Trees</a>
-                    <div className="tree-icon">
+                    <a href="search-results" className="active">Search Public Trees</a>
+                    <a className="tree-icon">
                         <Network />
-                        <a href="dashboard">Your Trees</a>
-                    </div>
-                    <div className="star-icon">
+                        <a href="dashboard">Your Trees</a> </a>
+                    <a className="star-icon">
                         <Star />
-                        <a href="#">Saved Trees</a>
-                    </div>
-                    <div className="collabPage-icon">
+                        <a href="#">Saved Trees</a> </a>
+                    <a className="collabPage-icon">
                         <PanelsTopLeft />
-                        <a href="#">Collaborator Trees</a>
-                    </div>
+                        <a href="#">Collaborator Trees</a> </a>
                 </nav>
             </div>
             <div className="container-fluid m-0 p-0 sr-bg" style={{ background: 'linear-gradient(#a5d6a7, #34c759)' }}>
