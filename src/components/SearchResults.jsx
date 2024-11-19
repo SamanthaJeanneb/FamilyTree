@@ -61,17 +61,19 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
 
     {/*Fetch Notifications*/ }
     const fetchNotifications = async () => {
-        try {
-            const response = await fetch(`/demo/notifications/${userId}`);
-            if (!response.ok) throw new Error(`Error: ${response.status}`);
-
-            const data = await response.json();
-            console.log("Fetched Notifications:", data);
-            setNotifications(data);
-        } catch (error) {
-            console.error("Error fetching notifications:", error);
-            setMessage(`Error fetching notifications: ${error.message}`);
-        }
+        if (username) {
+            try {
+                const response = await fetch(`/demo/notifications/${userId}`);
+                if (!response.ok) throw new Error(`Error: ${response.status}`);
+    
+                const data = await response.json();
+                console.log("Fetched Notifications:", data);
+                setNotifications(data);
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+                setMessage(`Error fetching notifications: ${error.message}`);
+            }
+        }  
     };
 
 
