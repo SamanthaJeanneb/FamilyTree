@@ -5,6 +5,7 @@ import './FamilyTreePage.css';
 import axios from 'axios';
 import FamilyTree from '@balkangraph/familytree.js';
 import InviteCollaboratorModal from "./InviteCollaborator.jsx";
+import FamilyTreePageHeader from '../navigation/FamilyTreePageHeader.jsx';
 
 const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     const navigate = useNavigate();
@@ -313,57 +314,91 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 
     return (
         <div className="tree-page-container">
-            <div className="tree-page-header">
-                <h1><img src="/familytreelogo.png" alt="Tree" /> | {treeName}</h1>
-                <div className="d-flex align-items-center">
-                    <button className="icon-button"><FaBell /></button>
-                    <button className="icon-button"><FaQuestionCircle /></button>
-                    <button className="btn btn-link person-name" onClick={() => navigate('/account')}>
-                        {username || "User"}
-                    </button>
-                </div>
-            </div>
+        {/* Top Navigation Bar */}
+        <FamilyTreePageHeader username={username} />
+    
+        {/* Main Content */}
+        <div
+          style={{
+            paddingTop: '70px', // Matches the height of the fixed navbar
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100vh',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Action Navigation Bar */}
+          <div
+            className="tree-action-header"
 
-            <div className="tree-action-header">
-                <div className="tree-info">
+          >
+<h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
+  Family Tree <span style={{ fontSize: '18px', fontWeight: 'normal' }}>| {treeName}</span>
+</h2>
+
+            <button
+              className="btn btn-primary invite-button"
+              onClick={openInviteModal}
+              style={{ marginLeft: 'auto' }}
+            >
+              <FaUserPlus /> Invite Collaborator
+            </button>
+          </div>
+    
+          {/* Tree View Section */}
+          <div className="tree-view-section" style={{ position: "relative", width: "100%", height: "600px" }}>
+  {/* Number of People in Top-Left */}
+  {individuals.length > 0 && (
+    <div
+      className="individual-count"
+      style={{
+        position: "absolute",
+        top: "10px",
+        left: "10px",
+        color: "#333",
+        padding: "5px 10px",
+        fontSize: "16px",
+        fontWeight: "bold",
+        zIndex: "10", // Ensures it's above the Balkan tree
+      }}
+    >
                     <span>{individuals.length} of {individuals.length} people</span>
-                </div>
-                <button className="btn btn-primary invite-button" onClick={openInviteModal}>
-                    <FaUserPlus/> Invite Collaborator
-                </button>
-            </div>
 
-            {isInviteModalOpen && (
-                <InviteCollaboratorModal
-                    sendInvite={sendInvite} // Pass the sendInvite method as a prop
-                    onClose={closeInviteModal}
-                    inviteMessage={inviteMessage} // Pass message as a prop
-                    inviteEmail={inviteEmail}
-                    setInviteEmail={setInviteEmail}
-                />
-            )}
+            </div>          
+  )}
 
-            <div className="tree-view-section">
-                {individuals.length === 0 && (
-                    <div className="add-individual">
-                        <h2>Welcome to your family tree! Start here:</h2>
-                        <button className="add-individual-button" onClick={openModal}>
-                            <span className="add-individual-icon">+</span>
-                            <span className="add-individual-text">Add Individual</span>
-                        </button>
-                    </div>
-                )}
+  {/* Balkan Tree Container */}
+  {individuals.length > 0 && (
+    <div
+      ref={treeContainerRef}
+      className="tree-container"
+      style={{ width: "100%", height: "100%" }}
+    ></div>
+  )}
 
-                {individuals.length > 0 && (
-                    <div ref={treeContainerRef} className="tree-view-section" style={{ width: '100%', height: '600px' }}></div>
-                )}
-            </div>
-
-            {individuals.length > 0 && (
-                <button className="floating-add-button" onClick={openModal} title="Add Individual">
-                    +
-                </button>
-            )}
+  {/* Welcome Message */}
+  {individuals.length === 0 && (
+    <div className="add-individual">
+      <h2>Welcome to your family tree! Start here:</h2>
+      <button className="add-individual-button" onClick={openModal}>
+        <span className="add-individual-icon">+</span>
+        <span className="add-individual-text">Add Individual</span>
+      </button>
+    </div>
+  )}
+</div>
+</div>
+      
+        {/* Floating Add Button */}
+        {individuals.length > 0 && (
+          <button
+            className="floating-add-button"
+            onClick={openModal}
+            title="Add Individual"
+          >
+            +
+          </button>
+        )}
 
             {individuals.length > 0 && (
                 <div className="delete-buttons-container">
