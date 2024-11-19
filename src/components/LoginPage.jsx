@@ -53,23 +53,7 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
       </div>
 
       {/* Button to redirect to the test page */}
-      <button 
-        className="redirect-button"
-        onClick={handleRedirectToTestPage}
-        style={{
-          position: 'absolute', 
-          top: '20px', 
-          right: '20px', 
-          padding: '10px 20px', 
-          backgroundColor: '#007bff', 
-          color: '#fff', 
-          border: 'none', 
-          borderRadius: '5px',
-          cursor: 'pointer'
-        }}
-      >
-        Go to Test Page
-      </button>
+      
     </div>
   );
 };
