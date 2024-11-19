@@ -10,11 +10,29 @@ const AttachmentModal = ({ memberId, onClose, onUpload }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (typeOfFile && file) {
-      onUpload(memberId, typeOfFile, file);
-    } else {
-      alert('Please select a file and specify the type.');
+    if (!typeOfFile) {
+      alert('Type of file is required.');
+      return;
     }
+    if (!file) {
+      alert('File is required.');
+      return;
+    }
+
+    // Convert the file to Base64 and store it in localStorage
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Data = reader.result;
+      // Store the image in localStorage with a unique key for the member
+      localStorage.setItem(`member_${memberId}_image`, base64Data);
+      onClose();
+    };
+    reader.onerror = (error) => {
+      console.error('Error reading file:', error);
+      alert('Failed to process file.');
+    };
+
+    reader.readAsDataURL(file); // Convert file to Base64
   };
 
   return (
@@ -27,7 +45,7 @@ const AttachmentModal = ({ memberId, onClose, onUpload }) => {
         width: '100vw',
         height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        zIndex: 1000,
+        zIndex: 1050,
       }}
     >
       <div
@@ -59,6 +77,7 @@ const AttachmentModal = ({ memberId, onClose, onUpload }) => {
               type="file"
               className="form-control"
               id="file"
+              accept="image/*" // Ensure only images are selectable
               onChange={handleFileChange}
               required
             />
