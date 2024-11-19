@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaCaretDown } from 'react-icons/fa';
 import { Star, Network, PanelsTopLeft } from 'lucide-react';
 import './SearchResults.css';
 import axios from "axios";
@@ -23,27 +23,27 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
 
     const handleNotificationClick = async (id, action, treeId) => {
         try {
-          const url =
-              action === 'accept'
-                  ? `/demo/acceptCollaboration?collaborationId=${id}`
-                  : `/demo/declineCollaboration?collaborationId=${id}`;
-    
-          const response = await axios.post(url, {}, { withCredentials: true });
-    
-          if (response.data.includes('accepted') || response.data.includes('declined')) {
-            // Remove notification from display
-            setNotifications((prev) =>
-                prev.filter((notification) => notification.id !== id)
-            );
-            setMessage(`Collaboration ${action}ed successfully.`);
-          }
+            const url =
+                action === 'accept'
+                    ? `/demo/acceptCollaboration?collaborationId=${id}`
+                    : `/demo/declineCollaboration?collaborationId=${id}`;
+
+            const response = await axios.post(url, {}, { withCredentials: true });
+
+            if (response.data.includes('accepted') || response.data.includes('declined')) {
+                // Remove notification from display
+                setNotifications((prev) =>
+                    prev.filter((notification) => notification.id !== id)
+                );
+                setMessage(`Collaboration ${action}ed successfully.`);
+            }
         } catch (error) {
-          console.error('Error handling collaboration:', error);
-          setMessage(`Error: ${error.message}`);
+            console.error('Error handling collaboration:', error);
+            setMessage(`Error: ${error.message}`);
         }
-    
+
         navigate(url);
-      };
+    };
 
     useEffect(() => {
         getPublicTrees();
@@ -65,7 +65,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
             try {
                 const response = await fetch(`/demo/notifications/${userId}`);
                 if (!response.ok) throw new Error(`Error: ${response.status}`);
-    
+
                 const data = await response.json();
                 console.log("Fetched Notifications:", data);
                 setNotifications(data);
@@ -73,7 +73,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                 console.error("Error fetching notifications:", error);
                 setMessage(`Error fetching notifications: ${error.message}`);
             }
-        }  
+        }
     };
 
 
@@ -114,7 +114,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
     const handleGoogleLogin = () => {
         // Redirect to the backend Google OAuth2 authorization endpoint
         window.location.href = 'http://localhost:8080/oauth2/authorization/google';
-      };
+    };
 
 
     return (
@@ -125,7 +125,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                     <a href="#" className="active">Search Public Trees</a>
                     <div className="tree-icon">
                         <Network />
-                        <a href="#">Your Trees</a>
+                        <a href="dashboard">Your Trees</a>
                     </div>
                     <div className="star-icon">
                         <Star />
@@ -173,36 +173,35 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                         </div>
                     )}
                     {username && (
-                        <div className="col-sm d-flex justify-content-end">
-                            <button className="btn btn-link" onClick={toggleNotifications}>
-                                <FaBell />
-                            </button>
-
-                            {/* Notification Dropdown */}
-                            {/* CHANGE ALL INSTANCES OF "demoNotifications" TO "notifications".*/}
-                            {showNotifications && (
-                                <div className="notification-dropdown">
-                                    <h5>Notifications</h5>
-                                    {notifications.length > 0 ? (
-                                        notifications.map((notification) => (
-                                            <div key={notification.id} className="notification-item"
-                                                onClick={() => handleNotificationClick(notification.id, notification.url)}
-                                                style={{ cursor: 'pointer', color: '#007bff' }}>
-                                                {notification.message}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="no-notifications">No new notifications</p>
-                                    )}
-                                </div>
-                            )}
-
-                            <button className="btn btn-link">
-                                <FaQuestionCircle />
-                            </button>
-                            <button className="btn btn-link person-name" onClick={() => navigate('/account')}>
-                                {username || "User"} {/* Display actual username or "User" if not loaded */}
-                            </button>
+                        <div className="col-sm d-flex justify-content-end align-items-center">
+                            <FaBell
+                                style={{
+                                    fontSize: '20px',
+                                    color: '#333',
+                                    marginRight: '15px',
+                                    cursor: 'pointer',
+                                }}
+                            />
+                            <div className="d-flex align-items-center"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => navigate('/account')}>
+                                <img
+                                    src="/profile-placeholder.png"
+                                    alt="Profile"
+                                    style={{
+                                        width: '35px',
+                                        height: '35px',
+                                        borderRadius: '50%',
+                                        marginRight: '8px',
+                                    }}
+                                />
+                                <span style={{ fontSize: '16px', color: 'black' }}>
+                                    {username || 'User'}
+                                </span>
+                                <FaCaretDown
+                                    style={{ fontSize: '14px', marginLeft: '5px', color: '#333' }}
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
