@@ -86,7 +86,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             img.onload = () => {
                 const canvas = document.createElement('canvas');
     
-                // Set fixed dimensions to 100px x 100px
                 const targetWidth = 100;
                 const targetHeight = 100;
     
@@ -96,42 +95,31 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-                // Scale and draw the image on the canvas to fit 100x100
                 ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
     
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7); // Compress the image
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
     
                 try {
-                    // Save the compressed image to localStorage
+                    // Save the compressed image in localStorage
                     localStorage.setItem(`member_${memberId}_image`, compressedBase64);
     
-                    // Update the individual's image in the state directly
-                    setIndividuals((prevIndividuals) => {
-                        const updatedIndividuals = prevIndividuals.map((ind) =>
+                    // Update the individuals array without bidirectional relationships
+                    setIndividuals((prevIndividuals) =>
+                        prevIndividuals.map((ind) =>
                             ind.memberId === memberId ? { ...ind, img: compressedBase64 } : ind
-                        );
+                        )
+                    );
     
-                        // Preserve bidirectional relationships
-                        updatedIndividuals.forEach((person) => {
-                            person.pid.forEach((partnerId) => {
-                                const partner = updatedIndividuals.find((ind) => ind.memberId === partnerId);
-                                if (partner && !partner.pid.includes(person.memberId)) {
-                                    partner.pid.push(person.memberId);
-                                }
-                            });
-                        });
-    
-                        return updatedIndividuals;
-                    });
-                    fetchFamilyMembers();
-                    // Close the attachment modal
                     setIsAttachmentModalOpen(false);
-                    alert('Attachment uploaded and resized to 100x100 pixels successfully!');
-                    window.location.reload();
+                    alert('Attachment uploaded successfully!');
     
+                    // Set a timer before navigating
+                    setTimeout(() => {
+                        navigate(`/tree/${encodeURIComponent(treeName)}`, { replace: true });
+                    }, 2000); // Delay navigation by 2 seconds
                 } catch (error) {
                     console.error('Error storing image in localStorage:', error);
-                    alert('Failed to store image. Consider uploading a smaller file.');
+                    alert('Failed to store image.');
                 }
             };
     
@@ -174,10 +162,12 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 
 
     useEffect(() => {
-        if (individuals.length > 0) {
+        console.log("Rendering tree:", { individuals, isAttachmentModalOpen });
+        if (individuals.length > 0 && !isAttachmentModalOpen) {
             renderFamilyTree();
         }
-    }, [individuals]);
+    }, [individuals, isAttachmentModalOpen]);
+    
 
     useEffect(() => {
         if (treeId && userId) {
@@ -186,7 +176,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
       }, [treeId, userId]); // Re-fetch when `treeId` or `userId` changes
       
 
-    const fetchFamilyMembers = async () => {
+      const fetchFamilyMembers = async () => {
         if (!treeId) return;
     
         try {
@@ -197,7 +187,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     
             const members = membersResponse.data;
     
-            // Use localStorage to prioritize updated images
             const updatedMembers = members.map((member) => {
                 const storedImage = localStorage.getItem(`member_${member.memberId}_image`);
                 return {
@@ -208,7 +197,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 };
             });
     
-            // Ensure bidirectional relationships
+            // Maintain bidirectional relationships
             updatedMembers.forEach((person) => {
                 person.pid.forEach((partnerId) => {
                     const partner = updatedMembers.find((ind) => ind.memberId === partnerId);
@@ -224,56 +213,58 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     };
     
+    
       
-    const renderFamilyTree = () => {
-        if (!treeContainerRef.current) {
-            console.error('Tree container is not mounted yet.');
-            return;
-        }
-    
-        const nodes = individuals.map((person) => ({
-            id: person.memberId,
-            name: person.name,
-            pids: person.pid,
-            mid: person.mid || null,
-            fid: person.fid || null,
-            gender: person.gender,
-            img: person.img || '/profile-placeholder.png', // Use updated image
-            template: person.gender === 'male' ? 'john_male' : person.gender === 'female' ? 'john_female' : 'john',
-        }));
-    
-        try {
-            familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
-                template: 'john',
-                layout: FamilyTree.ROUNDED,
-                nodes: nodes,
-                nodeBinding: {
-                    field_0: 'name',
-                    img_0: 'img',
+ const renderFamilyTree = () => {
+    if (!treeContainerRef.current) {
+        console.error('Tree container is not mounted yet.');
+        return;
+    }
+
+    const nodes = individuals.map((person) => ({
+        id: person.memberId,
+        name: person.name,
+        pids: person.pid,
+        mid: person.mid || null,
+        fid: person.fid || null,
+        gender: person.gender,
+        img: person.img || '/profile-placeholder.png', // Use updated image
+        template: person.gender === 'male' ? 'john_male' : person.gender === 'female' ? 'john_female' : 'john',
+    }));
+
+    try {
+        familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
+            template: 'john',
+            layout: FamilyTree.ROUNDED,
+            nodes: nodes,
+            nodeBinding: {
+                field_0: 'name',
+                img_0: 'img',
+            },
+            connectors: {
+                type: 'step',
+            },
+            menu: {
+                pdfPreview: {
+                    text: 'PDF Preview',
+                    icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+                    onClick: previewPDF,
                 },
-                connectors: {
-                    type: 'step',
+                exportPDF: {
+                    text: 'Export PDF',
+                    icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+                    onClick: exportPDF,
                 },
-                menu: {
-                    pdfPreview: {
-                        text: 'PDF Preview',
-                        icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
-                        onClick: previewPDF,
-                    },
-                    exportPDF: {
-                        text: 'Export PDF',
-                        icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
-                        onClick: exportPDF,
-                    },
-                },
-                mode: 'light',
-            });
-    
-            console.log('FamilyTree rendered successfully.');
-        } catch (error) {
-            console.error('Error rendering FamilyTree:', error);
-        }
-    };
+            },
+            mode: 'light',
+        });
+
+        console.log('FamilyTree rendered successfully.');
+    } catch (error) {
+        console.error('Error rendering FamilyTree:', error);
+    }
+};
+
     
     const sendInvite = () => {
         const data = {
@@ -546,10 +537,10 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
   {/* Welcome Message */}
   {individuals.length === 0 && (
     <div className="add-individual">
-      <h2>Welcome to your family tree! Start here:</h2>
+      <h2>Welcome to your family tree!<br></br>Start here:</h2>
       <button className="add-individual-button" onClick={openModal}>
         <span className="add-individual-icon">+</span>
-        <span className="add-individual-text">Add Individual</span>
+        <h1 className="add-individual-text">Add Individual</h1>
       </button>
     </div>
   )}
@@ -557,15 +548,17 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 </div>
       
         {/* Floating Add Button */}
-        {individuals.length > 0 && (
-          <button
-            className="floating-add-button"
-            onClick={openModal}
-            title="Add Individual"
-          >
-            +
-          </button>
-        )}
+{/* Floating Add Button */}
+{individuals.length > 0 && !isModalOpen && ( // Hide when isModalOpen is true
+  <button
+    className="floating-add-button"
+    onClick={openModal}
+    title="Add Individual"
+  >
+    +
+  </button>
+)}
+
 
             {individuals.length > 0 && (
                 <div className="delete-buttons-container">

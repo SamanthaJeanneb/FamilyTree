@@ -81,7 +81,7 @@ svg.john .field_1 {
 }
 
 .floating-add-button:hover {
-  background-color: #0056b3;
+  background-color: #6d6d6d;
 }
 
 
@@ -195,17 +195,13 @@ svg.john .field_1 {
 
 .add-individual {
   color: #A7A7A7;
-
-  justify-content: center;
-  align-items: center;
+  width: 17vw;
+  display: flex; /* Use flexbox for alignment */
+  justify-content: center; /* Horizontally center the content */
+  align-items: center; /* Vertically center the content */
   text-align: center;
-}
-.add-individual-button {
-  margin-top: 70px;
-  margin-left: 185px;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  margin: 0 auto; /* Center the container horizontally */
+  flex-direction: column; /* Stack the button and text vertically */
 }
 
 .add-individual-button {
@@ -213,24 +209,44 @@ svg.john .field_1 {
   border: 3px solid #A7A7A7;
   border-radius: 30px;
   padding: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: flex; /* Use flexbox for content alignment inside the button */
+  flex-direction: column; /* Stack text/icons vertically inside the button */
+  align-items: center; /* Center content inside the button */
   justify-content: center;
   cursor: pointer;
   width: 150px;
   height: 150px;
 }
-
+.add-individual h2 {
+  margin-bottom: 40px; /* Increase spacing between text and button */
+  font-weight: bold;
+  text-align: center;
+}
 .add-individual-button:hover {
-  background-color: #34c759;
+  border:#b4b4b4;
+  background-color: #cacaca;
   color: white;
 }
+.add-individual-button:hover .add-individual-icon {
+  border:#ffffff;
+  color: white; /* Change icon color to white */
+}
 
+.add-individual-button:hover .add-individual-text {
+  color: white; /* Change text color to white */
+}
 .add-individual-icon {
   color: #A7A7A7;
-  font-size: 48px;
-  font-weight: bold;
+  font-size: 35px; /* Icon size */
+  font-weight: lighter;
+  border: 2px solid #A7A7A7;
+  border-radius: 50%; /* Makes it circular */
+  width: 50px; /* Set explicit width */
+  height: 50px; /* Set explicit height */
+  display: flex; /* Center the icon inside */
+  align-items: center; /* Vertically center content */
+  justify-content: center; /* Horizontally center content */
+  box-sizing: border-box; /* Include padding and border in size */
 }
 
 .add-individual-text {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBell, FaQuestionCircle, FaPlus } from 'react-icons/fa';
+import { FaBell, FaQuestionCircle, FaPlus, FaCaretDown } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './DashboardPage.css';
 import { Trash, Star, Network, PanelsTopLeft } from 'lucide-react';
@@ -240,10 +240,10 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
                  onClick={handleYourTreesClick}
               >Your Trees</a>
             </a>
-            <a className="star-icon">
+            {/* <a className="star-icon">
               <Star/>
               <a href="#">Saved Trees</a>
-            </a>
+            </a> */}
             <a
                 href="#"
                 className={activeLink === "collaboratorTrees" ? "active collabPage-icon" : ""}
@@ -283,7 +283,7 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
               <div className="d-flex align-items-center">
                 <div className="notification-icon-wrapper position-relative">
                   <button className="btn btn-link" onClick={toggleNotifications} style={{padding: '0px'}}>
-                    <FaBell/>
+                  <FaBell style={{ color: 'black' }} />
                   </button>
                   {notifications.length > 0 && (
                       <span
@@ -346,11 +346,34 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
                     </div>
                 )}
                 <button className="btn btn-link">
-                  <FaQuestionCircle/>
+                <FaQuestionCircle style={{ color: 'black' }} />
                 </button>
-                <button className="btn btn-link person-name" onClick={() => navigate('/account')}>
-                  {username || "User"} {/* Display actual username or "User" if not loaded */}
-                </button>
+                <div
+            className="d-flex align-items-center"
+            style={{ cursor: 'pointer' }}
+            onClick={() => navigate('/account')}
+          >
+            {/* Placeholder Profile Picture */}
+            <img
+              src="/profile-placeholder.png"
+              alt="Profile"
+              style={{
+                width: '35px',
+                height: '35px',
+                borderRadius: '50%',
+                marginRight: '8px',
+              }}
+            />
+            {/* Username */}
+            <span style={{ fontSize: '16px', color: 'black' }}>
+              {username || 'User'}
+            </span>
+            {/* Caret Down Icon */}
+            <FaCaretDown
+              style={{ fontSize: '14px', marginLeft: '5px', color: '#333' }}
+            />
+          </div>
+
               </div>
             </div>
           </nav>
