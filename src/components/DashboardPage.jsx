@@ -168,21 +168,19 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     try {
       const response = await fetch('/demo/createFamilyTree', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           treeName: treeName || 'SampleTree',
           privacySetting: visibility === 'public' ? 'Public' : 'Private',
           userId: userId.toString(),
         }),
       });
-
+  
       if (response.ok) {
         const data = await response.text();
         setMessage(`Success: ${data}`);
         closeCreatePrompt();
-        navigate(`/tree/${encodeURIComponent(treeName)}`);
+        navigate(`/tree/${encodeURIComponent(treeName)}`, { state: { treeId: data.treeId, userId } });
       } else {
         setMessage(`Error: ${response.status}`);
       }
@@ -190,10 +188,12 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
       setMessage(`Error: ${error.message}`);
     }
   };
+  
 
   const openTree = (treeId, treeName, userId) => {
     navigate(`/tree/${encodeURIComponent(treeName)}`, { state: { treeId, userId } });
   };
+  
   // Drag and drop handlers
   const handleDragStart = (e, treeId) => {
     e.dataTransfer.setData("treeId", treeId);

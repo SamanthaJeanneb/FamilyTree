@@ -15,12 +15,11 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     const [selectedMemberId, setSelectedMemberId] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
-    const { treeId } = location.state || {};
+    const { treeId, userId } = location.state || {};    
     const { treeName } = useParams();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [individuals, setIndividuals] = useState([]);
     const [username, setUsername] = useState('');
-    const userId = 1;
     const treeContainerRef = useRef(null);
     const familyTreeInstance = useRef(null);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -86,27 +85,50 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const maxWidth = 500; // Set a max width for the image
-                const scaleSize = maxWidth / img.width;
     
-                canvas.width = maxWidth;
-                canvas.height = img.height * scaleSize;
+                // Set fixed dimensions to 100px x 100px
+                const targetWidth = 100;
+                const targetHeight = 100;
+    
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
     
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+                // Scale and draw the image on the canvas to fit 100x100
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
     
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7); // Compress the image
     
-                // Save the compressed image to localStorage
                 try {
+                    // Save the compressed image to localStorage
                     localStorage.setItem(`member_${memberId}_image`, compressedBase64);
     
-                    // Call fetchFamilyMembers to ensure the UI is refreshed with the updated image
-                    fetchFamilyMembers();
+                    // Update the individual's image in the state directly
+                    setIndividuals((prevIndividuals) => {
+                        const updatedIndividuals = prevIndividuals.map((ind) =>
+                            ind.memberId === memberId ? { ...ind, img: compressedBase64 } : ind
+                        );
     
+                        // Preserve bidirectional relationships
+                        updatedIndividuals.forEach((person) => {
+                            person.pid.forEach((partnerId) => {
+                                const partner = updatedIndividuals.find((ind) => ind.memberId === partnerId);
+                                if (partner && !partner.pid.includes(person.memberId)) {
+                                    partner.pid.push(person.memberId);
+                                }
+                            });
+                        });
+    
+                        return updatedIndividuals;
+                    });
+                    fetchFamilyMembers();
                     // Close the attachment modal
                     setIsAttachmentModalOpen(false);
-                    alert('Attachment uploaded successfully!');
+                    alert('Attachment uploaded and resized to 100x100 pixels successfully!');
+                    window.location.reload();
+    
                 } catch (error) {
                     console.error('Error storing image in localStorage:', error);
                     alert('Failed to store image. Consider uploading a smaller file.');
@@ -126,8 +148,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         reader.readAsDataURL(file);
     };
     
-    
-
     
     useEffect(() => {
         axios.get('http://localhost:8080/api/login', { withCredentials: true })
@@ -159,47 +179,53 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     }, [individuals]);
 
+    useEffect(() => {
+        if (treeId && userId) {
+          fetchFamilyMembers();
+        }
+      }, [treeId, userId]); // Re-fetch when `treeId` or `userId` changes
+      
+
     const fetchFamilyMembers = async () => {
         if (!treeId) return;
-      
+    
         try {
-          const membersResponse = await axios.get('/demo/getFamilyMembersInTree', {
-            params: { treeId },
-            headers: { Authorization: `Bearer ${user.token}` },
-          });
-      
-          const members = membersResponse.data;
-      
-          // Check localStorage for images for each member
-          const updatedMembers = members.map((member) => {
-            const storedImage = localStorage.getItem(`member_${member.memberId}_image`);
-            return {
-              ...member,
-              gender: member.gender ? member.gender.toLowerCase() : 'other',
-              pid: member.pid ? [member.pid] : [],
-              img: storedImage || '/profile-placeholder.png', // Use stored image or fallback to placeholder
-            };
-          });
-      
-          console.log('Updated family members with local images:', updatedMembers);
-      
-          // Ensure bidirectional relationships
-          updatedMembers.forEach((person) => {
-            person.pid.forEach((partnerId) => {
-              const partner = updatedMembers.find((ind) => ind.memberId === partnerId);
-              if (partner && !partner.pid.includes(person.memberId)) {
-                partner.pid.push(person.memberId);
-              }
+            const membersResponse = await axios.get('/demo/getFamilyMembersInTree', {
+                params: { treeId },
+                headers: { Authorization: `Bearer ${user.token}` },
             });
-          });
-      
-          setIndividuals(updatedMembers);
+    
+            const members = membersResponse.data;
+    
+            // Use localStorage to prioritize updated images
+            const updatedMembers = members.map((member) => {
+                const storedImage = localStorage.getItem(`member_${member.memberId}_image`);
+                return {
+                    ...member,
+                    gender: member.gender ? member.gender.toLowerCase() : 'other',
+                    pid: member.pid ? [member.pid] : [],
+                    img: storedImage || '/profile-placeholder.png', // Use stored image or fallback
+                };
+            });
+    
+            // Ensure bidirectional relationships
+            updatedMembers.forEach((person) => {
+                person.pid.forEach((partnerId) => {
+                    const partner = updatedMembers.find((ind) => ind.memberId === partnerId);
+                    if (partner && !partner.pid.includes(person.memberId)) {
+                        partner.pid.push(person.memberId);
+                    }
+                });
+            });
+    
+            setIndividuals(updatedMembers);
         } catch (error) {
-          console.error('Error fetching family members:', error);
+            console.error('Error fetching family members:', error);
         }
-      };
+    };
+    
       
-      const renderFamilyTree = () => {
+    const renderFamilyTree = () => {
         if (!treeContainerRef.current) {
             console.error('Tree container is not mounted yet.');
             return;
@@ -212,16 +238,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             mid: person.mid || null,
             fid: person.fid || null,
             gender: person.gender,
-            img:
-                person.img ||
-                localStorage.getItem(`member_${person.memberId}_image`) || // Fallback to locally stored image
-                '/profile-placeholder.png', // Fallback to placeholder
-            template:
-                person.gender === 'male' ? 'john_male' : person.gender === 'female' ? 'john_female' : 'john',
+            img: person.img || '/profile-placeholder.png', // Use updated image
+            template: person.gender === 'male' ? 'john_male' : person.gender === 'female' ? 'john_female' : 'john',
         }));
-    
-        console.log('Nodes passed to FamilyTree:', nodes);
-    
     
         try {
             familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
@@ -256,7 +275,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     };
     
-
     const sendInvite = () => {
         const data = {
             treeId: treeId,
@@ -372,7 +390,20 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         if (newRelationship.fid) formData.append('fid', newRelationship.fid);
         if (newRelationship.mid) formData.append('mid', newRelationship.mid);
         if (newRelationship.pid) formData.append('pid', newRelationship.pid);
-    
+        console.log('Submitting form with data:', {
+        name: newPerson.name,
+        birthdate: formattedBirthdate,
+        gender: newPerson.sex,
+        userId,
+        treeId,
+        addedById: userId,
+        deathdate: formattedDeathdate,
+        additionalInfo: newPerson.additionalInfo,
+        isPrivate: newPerson.isPrivate,
+        fid: newRelationship.fid,
+        mid: newRelationship.mid,
+        pid: newRelationship.pid,
+    });
         axios
             .post('/demo/addFamilyMember', formData, {
                 headers: {
@@ -411,7 +442,12 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 console.error('Error adding family member:', error);
             });
     };
-    
+    useEffect(() => {
+        if (!treeId) {
+            console.error('Tree ID is missing. Redirecting to dashboard.');
+            navigate('/dashboard');
+        }
+    }, [treeId]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
