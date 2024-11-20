@@ -233,7 +233,7 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
         <div className="dashboard-sidebar bg-light position-fixed">
           <img src="familytreelogo.png" alt="Tree" className="dashboard-logo" />
           <nav className="dashboard-nav-links">
-            <a href="search-results" className="search">Search Public Trees</a>
+          <a href="search-results" className="search">Search Public Trees</a> 
             <a className={activeLink === "myTrees" ? "active" : ""}>
               <Network/>
               <a href="#"

@@ -101,15 +101,18 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                         localStorage.setItem('accessToken', response.data.token);
                         setIsAuthenticated(true);
                         setUser(response.data);
-                        setUsername(response.data.name);
+                        // Set the username from the name field in the response
+                        setUsername(response.data.name || ''); // Use an empty string if name is undefined
                     }
                 }
             })
             .catch(error => {
                 console.error("User not authenticated:", error);
                 setIsAuthenticated(false);
+                setUsername(''); // Clear username if authentication fails
             });
-    }
+    };
+    
 
     const handleGoogleLogin = () => {
         // Redirect to the backend Google OAuth2 authorization endpoint
@@ -157,7 +160,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                             </button>
                         </div>
                     </div>
-                    {!username && (
+                    {!user && ( // Check if user is null
                         <div className="col-sm d-flex justify-content-end google-login-button">
                             <button onClick={handleGoogleLogin}>
                                 <img
@@ -169,7 +172,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                             </button>
                         </div>
                     )}
-                    {username && (
+                    {user && ( // If user exists, show the profile section
                         <div className="col-sm d-flex justify-content-end align-items-center">
                             <FaBell
                                 style={{
@@ -193,7 +196,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                                     }}
                                 />
                                 <span style={{ fontSize: '16px', color: 'black' }}>
-                                    {username || 'User'}
+                                    {user.name || 'User'}
                                 </span>
                                 <FaCaretDown
                                     style={{ fontSize: '14px', marginLeft: '5px', color: '#333' }}
@@ -225,8 +228,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                     {message && <p style={{ padding: '20px', color: message.includes('Success') ? 'green' : 'red' }}>{message}</p>}
                 </div>
             </div>
-        </div >
+        </div>
     );
-
 }
 export default SearchResults;
