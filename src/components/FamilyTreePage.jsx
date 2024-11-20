@@ -222,9 +222,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     
         console.log('Nodes passed to FamilyTree:', nodes);
     
-        if (familyTreeInstance.current) {
-            familyTreeInstance.current.destroy();
-        }
     
         try {
             familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {

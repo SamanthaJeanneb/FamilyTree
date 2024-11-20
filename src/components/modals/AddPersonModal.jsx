@@ -162,13 +162,7 @@ const AddPersonModal = ({
               ))}
             </select>
           </div>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => openAttachmentModal(newPerson.id)}
-          >
-            Add Attachment
-          </button>
+        
           <div className="form-buttons d-flex justify-content-between mt-3">
             <button
               type="button"
