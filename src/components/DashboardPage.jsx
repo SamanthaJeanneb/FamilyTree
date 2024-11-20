@@ -74,6 +74,14 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
       setMessage(`Error: ${error.message}`);
     }
 
+    if (response.data.includes('accepted')) {
+// Remove notification from display
+setNotifications((prev) =>
+  prev.filter((notification) => notification.id !== id)
+);
+setMessage(`Collaboration ${action}ed successfully.`);
+    }
+
     navigate(url);
   };
 
