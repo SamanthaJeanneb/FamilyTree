@@ -294,7 +294,6 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
                 </div>
 
                 {/* Notification Dropdown */}
-                {/* CHANGE ALL INSTANCES OF "demoNotifications" TO "notifications".*/}
                 {showNotifications && (
                     <div className="notification-dropdown">
                       <h5>Notifications</h5>
