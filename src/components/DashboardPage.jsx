@@ -73,7 +73,7 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
       console.error('Error handling collaboration:', error);
       setMessage(`Error: ${error.message}`);
     }
-
+console.log("Given URL: "+url);
     navigate(url);
   };
 

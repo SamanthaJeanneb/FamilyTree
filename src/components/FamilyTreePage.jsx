@@ -457,7 +457,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     return (
         <div className="tree-page-container">
         {/* Top Navigation Bar */}
-        <FamilyTreePageHeader username={username} />
     
         {/* Main Content */}
         <div
@@ -474,6 +473,8 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             className="tree-action-header"
 
           >
+                    <FamilyTreePageHeader username={username} />
+
 <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
   Family Tree <span style={{ fontSize: '18px', fontWeight: 'normal' }}>| {treeName}</span>
 </h2>
@@ -505,6 +506,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             )}
           {/* Tree View Section */}
           <div className="tree-view-section" style={{ position: "relative", width: "100%", height: "600px" }}>
+ 
   {/* Number of People in Top-Left */}
   {individuals.length > 0 && (
     <div

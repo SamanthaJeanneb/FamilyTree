@@ -139,34 +139,6 @@ svg.john .field_1 {
 }
 
 
-.add-individual-button {
-  background-color: #e0e0e0;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  width: 200px;
-  height: 200px;
-}
-
-.add-individual-button:hover {
-  background-color: #34c759;
-  color: white;
-}
-
-.add-individual-icon {
-  font-size: 48px;
-  font-weight: bold;
-}
-
-.add-individual-text {
-  margin-top: 10px;
-  font-size: 16px;
-}
 
 
 .search-input {
@@ -195,7 +167,7 @@ svg.john .field_1 {
 
 .add-individual {
   color: #A7A7A7;
-  width: 17vw;
+  width: 13vw;
   display: flex; /* Use flexbox for alignment */
   justify-content: center; /* Horizontally center the content */
   align-items: center; /* Vertically center the content */
@@ -214,19 +186,25 @@ svg.john .field_1 {
   align-items: center; /* Center content inside the button */
   justify-content: center;
   cursor: pointer;
-  width: 150px;
-  height: 150px;
+  width: 8vw;
+  height: auto; /* Allow dynamic height */
+  min-height: 18vh; /* Ensure minimum height */
+  flex-wrap: wrap; /* Enable wrapping */
 }
 .add-individual h2 {
   margin-bottom: 40px; /* Increase spacing between text and button */
   font-weight: bold;
   text-align: center;
+  font-size: larger;
 }
 .add-individual-button:hover {
   border:#b4b4b4;
   background-color: #cacaca;
   color: white;
+  height: auto; /* Let the button height adjust automatically */
+  min-height: 18vh; /* Set a minimum height to ensure sufficient space */
 }
+
 .add-individual-button:hover .add-individual-icon {
   border:#ffffff;
   color: white; /* Change icon color to white */
@@ -253,6 +231,7 @@ svg.john .field_1 {
   color: #A7A7A7;
   margin-top: 10px;
   font-size: 16px;
+  
 }
 
 

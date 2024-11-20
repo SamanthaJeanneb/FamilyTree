@@ -108,7 +108,7 @@ const AddPersonModal = ({
             />
           </div>
           <div className="form-group">
-            <label htmlFor="fatherId">Father</label>
+            <label htmlFor="fatherId">First Parent</label>
             <select
               className="form-control"
               id="fatherId"
@@ -116,9 +116,8 @@ const AddPersonModal = ({
               value={newRelationship.fid}
               onChange={handleRelationshipChange}
             >
-              <option value="">Select Father</option>
+              <option value="">Select First Parent</option>
               {individuals
-                .filter((individual) => individual.gender === 'male')
                 .map((individual) => (
                   <option key={individual.memberId} value={individual.memberId}>
                     {individual.name}
@@ -127,7 +126,7 @@ const AddPersonModal = ({
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="motherId">Mother</label>
+            <label htmlFor="motherId">Second Parent</label>
             <select
               className="form-control"
               id="motherId"
@@ -135,9 +134,8 @@ const AddPersonModal = ({
               value={newRelationship.mid}
               onChange={handleRelationshipChange}
             >
-              <option value="">Select Mother</option>
+              <option value="">Select Second Parent</option>
               {individuals
-                .filter((individual) => individual.gender === 'female')
                 .map((individual) => (
                   <option key={individual.memberId} value={individual.memberId}>
                     {individual.name}
