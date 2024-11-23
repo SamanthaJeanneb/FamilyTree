@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {FaBell, FaQuestionCircle, FaTrash, FaUserPlus} from 'react-icons/fa';
+import { FaBell, FaShare, FaQuestionCircle, FaTrash, FaUserPlus } from 'react-icons/fa';
+import { Share2 } from 'lucide-react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './FamilyTreePage.css';
 import axios from 'axios';
@@ -15,7 +16,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     const [selectedMemberId, setSelectedMemberId] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
-    const { treeId, userId } = location.state || {};    
+    const { treeId, userId } = location.state || {};
     const { treeName } = useParams();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [individuals, setIndividuals] = useState([]);
@@ -25,6 +26,25 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [inviteMessage, setInviteMessage] = useState('');
     const [inviteEmail, setInviteEmail] = useState('');
+
+    const [viewOnly, setViewOnly] = useState(false);
+    const [isPublic, setIsPublic] = useState(false);
+
+    const togglePrivacy = () => {
+        // This is the place where we should call "UpdatePrivacySettings" to save the new privacy setting that the user just clicked passing the value in isPublic
+        setIsPublic(!isPublic);
+    };
+
+    const [isPanelVisible, setIsPanelVisible] = useState(false);
+    const togglePanel = () => { setIsPanelVisible(!isPanelVisible); };
+    const currentURL = `${window.location.protocol}//${window.location.host}${location.pathname}${location.search}${location.hash}`;
+
+    const copyLink = () => {
+        navigator.clipboard.writeText(currentURL)
+            .then(() => { togglePanel(); })
+            .catch(err => { console.error('Failed to copy text: ', err); });
+    };
+
 
     const [newPerson, setNewPerson] = useState({
         name: '',
@@ -69,50 +89,50 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     const openAttachmentModal = (memberId) => {
         setSelectedMemberId(memberId);
         setIsAttachmentModalOpen(true);
-      };
-    
-      const closeAttachmentModal = () => {
+    };
+
+    const closeAttachmentModal = () => {
         setSelectedMemberId(null);
         setIsAttachmentModalOpen(false);
-      };
-    
-      const uploadAttachment = (memberId, typeOfFile, file) => {
+    };
+
+    const uploadAttachment = (memberId, typeOfFile, file) => {
         const reader = new FileReader();
-    
+
         reader.onload = () => {
             const img = new Image();
             img.src = reader.result;
-    
+
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-    
+
                 const targetWidth = 100;
                 const targetHeight = 100;
-    
+
                 canvas.width = targetWidth;
                 canvas.height = targetHeight;
-    
+
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
                 ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-    
+
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-    
+
                 try {
                     // Save the compressed image in localStorage
                     localStorage.setItem(`member_${memberId}_image`, compressedBase64);
-    
+
                     // Update the individuals array without bidirectional relationships
                     setIndividuals((prevIndividuals) =>
                         prevIndividuals.map((ind) =>
                             ind.memberId === memberId ? { ...ind, img: compressedBase64 } : ind
                         )
                     );
-    
+
                     setIsAttachmentModalOpen(false);
                     alert('Attachment uploaded successfully!');
-    
+
                     // Set a timer before navigating
                     setTimeout(() => {
                         navigate(`/tree/${encodeURIComponent(treeName)}`, { replace: true });
@@ -122,21 +142,20 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     alert('Failed to store image.');
                 }
             };
-    
+
             img.onerror = () => {
                 alert('Error processing the image.');
             };
         };
-    
+
         reader.onerror = (error) => {
             console.error('Error reading file:', error);
             alert('Failed to process the file.');
         };
-    
+
         reader.readAsDataURL(file);
     };
-    
-    
+
     useEffect(() => {
         axios.get('http://localhost:8080/api/login', { withCredentials: true })
             .then(response => {
@@ -144,14 +163,23 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     if (response.data.token) {
                         setIsAuthenticated(true);
                         setUser(response.data);
-                        setUsername(response.data.name)
+                        setUsername(response.data.name);
+                        
+                        // When determining the viewOnly attribute, there are 3 things to consider:
+                        // 1. Does the user own this true?  viewOnly = false
+                        // 2. If the user does not own the tree, Is the true public?
+                        // 3. If the tree is private and not the current owner, then viewOnly = true
+
+                        // Need to check to see if the current user is the owner
+                        // If the current user is not the owner, then check if the tree is public
+                       setViewOnly(false);
                     }
                 }
             }).then(() => {
-            if (treeId && userId) {
-                fetchFamilyMembers();
-            }
-        })
+                if (treeId && userId) {
+                    fetchFamilyMembers();
+                }
+            })
             .catch(error => {
                 console.log("User not authenticated:", error);
                 setIsAuthenticated(false);
@@ -167,26 +195,26 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             renderFamilyTree();
         }
     }, [individuals, isAttachmentModalOpen]);
-    
+
 
     useEffect(() => {
         if (treeId && userId) {
-          fetchFamilyMembers();
+            fetchFamilyMembers();
         }
-      }, [treeId, userId]); // Re-fetch when `treeId` or `userId` changes
-      
+    }, [treeId, userId]); // Re-fetch when `treeId` or `userId` changes
 
-      const fetchFamilyMembers = async () => {
+
+    const fetchFamilyMembers = async () => {
         if (!treeId) return;
-    
+
         try {
             const membersResponse = await axios.get('/demo/getFamilyMembersInTree', {
                 params: { treeId },
                 headers: { Authorization: `Bearer ${user.token}` },
             });
-    
+
             const members = membersResponse.data;
-    
+
             const updatedMembers = members.map((member) => {
                 const storedImage = localStorage.getItem(`member_${member.memberId}_image`);
                 return {
@@ -196,7 +224,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     img: storedImage || '/profile-placeholder.png', // Use stored image or fallback
                 };
             });
-    
+
             // Maintain bidirectional relationships
             updatedMembers.forEach((person) => {
                 person.pid.forEach((partnerId) => {
@@ -206,66 +234,66 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     }
                 });
             });
-    
+
             setIndividuals(updatedMembers);
         } catch (error) {
             console.error('Error fetching family members:', error);
         }
     };
-    
-    
-      
- const renderFamilyTree = () => {
-    if (!treeContainerRef.current) {
-        console.error('Tree container is not mounted yet.');
-        return;
-    }
 
-    const nodes = individuals.map((person) => ({
-        id: person.memberId,
-        name: person.name,
-        pids: person.pid,
-        mid: person.mid || null,
-        fid: person.fid || null,
-        gender: person.gender,
-        img: person.img || '/profile-placeholder.png', // Use updated image
-        template: person.gender === 'male' ? 'john_male' : person.gender === 'female' ? 'john_female' : 'john',
-    }));
 
-    try {
-        familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
-            template: 'john',
-            layout: FamilyTree.ROUNDED,
-            nodes: nodes,
-            nodeBinding: {
-                field_0: 'name',
-                img_0: 'img',
-            },
-            connectors: {
-                type: 'step',
-            },
-            menu: {
-                pdfPreview: {
-                    text: 'PDF Preview',
-                    icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
-                    onClick: previewPDF,
+
+    const renderFamilyTree = () => {
+        if (!treeContainerRef.current) {
+            console.error('Tree container is not mounted yet.');
+            return;
+        }
+
+        const nodes = individuals.map((person) => ({
+            id: person.memberId,
+            name: person.name,
+            pids: person.pid,
+            mid: person.mid || null,
+            fid: person.fid || null,
+            gender: person.gender,
+            img: person.img || '/profile-placeholder.png', // Use updated image
+            template: person.gender === 'male' ? 'john_male' : person.gender === 'female' ? 'john_female' : 'john',
+        }));
+
+        try {
+            familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
+                template: 'john',
+                layout: FamilyTree.ROUNDED,
+                nodes: nodes,
+                nodeBinding: {
+                    field_0: 'name',
+                    img_0: 'img',
                 },
-                exportPDF: {
-                    text: 'Export PDF',
-                    icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
-                    onClick: exportPDF,
+                connectors: {
+                    type: 'step',
                 },
-            },
-            mode: 'light',
-        });
+                menu: {
+                    pdfPreview: {
+                        text: 'PDF Preview',
+                        icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+                        onClick: previewPDF,
+                    },
+                    exportPDF: {
+                        text: 'Export PDF',
+                        icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+                        onClick: exportPDF,
+                    },
+                },
+                mode: 'light',
+            });
 
-        console.log('FamilyTree rendered successfully.');
-    } catch (error) {
-        console.error('Error rendering FamilyTree:', error);
-    }
-};
+            console.log('FamilyTree rendered successfully.');
+        } catch (error) {
+            console.error('Error rendering FamilyTree:', error);
+        }
+    };
 
-    
+
     const sendInvite = () => {
         const data = {
             treeId: treeId,
@@ -334,10 +362,10 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             .then(() => {
                 // Remove the specific family member's image from localStorage
                 localStorage.removeItem(`member_${memberId}_image`);
-                
+
                 // Refresh the family members list
                 fetchFamilyMembers();
-    
+
                 alert('Family member and their associated image have been deleted.');
             })
             .catch((error) => {
@@ -345,12 +373,14 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 alert('Failed to delete family member.');
             });
     };
-    
+
 
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
 
     const openInviteModal = () => setIsInviteModalOpen(true);
+    const openShareModal = () => { };
+
     const closeInviteModal = () => {
         setIsInviteModalOpen(false);
         setInviteEmail('');
@@ -360,14 +390,14 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 
     const handleFormSubmit = (e) => {
         e.preventDefault();
-    
+
         const formattedBirthdate = newPerson.birthdate
             ? new Date(newPerson.birthdate).toISOString().split('T')[0]
             : '';
         const formattedDeathdate = newPerson.deathdate
             ? new Date(newPerson.deathdate).toISOString().split('T')[0]
             : '';
-    
+
         const formData = new URLSearchParams();
         formData.append('name', newPerson.name);
         formData.append('birthdate', formattedBirthdate);
@@ -382,19 +412,19 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         if (newRelationship.mid) formData.append('mid', newRelationship.mid);
         if (newRelationship.pid) formData.append('pid', newRelationship.pid);
         console.log('Submitting form with data:', {
-        name: newPerson.name,
-        birthdate: formattedBirthdate,
-        gender: newPerson.sex,
-        userId,
-        treeId,
-        addedById: userId,
-        deathdate: formattedDeathdate,
-        additionalInfo: newPerson.additionalInfo,
-        isPrivate: newPerson.isPrivate,
-        fid: newRelationship.fid,
-        mid: newRelationship.mid,
-        pid: newRelationship.pid,
-    });
+            name: newPerson.name,
+            birthdate: formattedBirthdate,
+            gender: newPerson.sex,
+            userId,
+            treeId,
+            addedById: userId,
+            deathdate: formattedDeathdate,
+            additionalInfo: newPerson.additionalInfo,
+            isPrivate: newPerson.isPrivate,
+            fid: newRelationship.fid,
+            mid: newRelationship.mid,
+            pid: newRelationship.pid,
+        });
         axios
             .post('/demo/addFamilyMember', formData, {
                 headers: {
@@ -407,10 +437,10 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 if (!memberId) {
                     throw new Error('Member ID not returned by backend');
                 }
-    
+
                 // Fetch family members to update the tree
                 fetchFamilyMembers();
-    
+
                 // Reset form fields
                 setNewPerson({
                     name: '',
@@ -421,10 +451,10 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     isPrivate: false,
                 });
                 setNewRelationship({ fid: '', mid: '', pid: '' });
-    
+
                 // Close the add person modal
                 closeModal();
-    
+
                 // Open the attachment modal for the newly added member
                 setSelectedMemberId(memberId);
                 setIsAttachmentModalOpen(true);
@@ -456,113 +486,151 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 
     return (
         <div className="tree-page-container">
-        {/* Top Navigation Bar */}
-    
-        {/* Main Content */}
-        <div
-          style={{
-            paddingTop: '70px', // Matches the height of the fixed navbar
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Action Navigation Bar */}
-          <div
-            className="tree-action-header"
+            {/* Top Navigation Bar */}
 
-          >
+            {/* Main Content */}
+            <div
+                style={{
+                    paddingTop: '70px', // Matches the height of the fixed navbar
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100vh',
+                    overflow: 'hidden',
+                }}
+            >
+                {/* Action Navigation Bar */}
+                <div
+                    className="tree-action-header"
+
+                >
                     <FamilyTreePageHeader username={username} />
 
-<h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
-  Family Tree <span style={{ fontSize: '18px', fontWeight: 'normal' }}>| {treeName}</span>
-</h2>
 
-            <button
-              className="btn btn-primary invite-button"
-              onClick={openInviteModal}
-              style={{ marginLeft: 'auto' }}
-            >
-              <FaUserPlus /> Invite Collaborator
-            </button>
-          </div>
-          {isInviteModalOpen && (
+                    <div className="container-fluid m-0 p-0">
+                        <div className="flex-container">
+                            <div className="flex-item">
+                                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
+                                    Family Tree <span style={{ fontSize: '18px', fontWeight: 'normal' }}>| {treeName}</span>
+                                </h2>
+                            </div>
 
-                <InviteCollaboratorModal
+                            {!viewOnly && (
+                                <div className="flex-item">
+                                    <button className="btn" onClick={openShareModal} style={{ marginLeft: 'auto' }}>
+                                        <div className="form-check form-switch custom-toggle">
+                                            <input className="form-check-input" type="checkbox" id="switchPublicPrivate" checked={isPublic} onChange={togglePrivacy} />
+                                            <label className="form-check-label" htmlFor="switchPublicPrivate">{isPublic ? 'Public' : 'Private'}</label>
+                                        </div>
+                                    </button>
+                                </div>
+                            )}
 
-                    sendInvite={sendInvite} // Pass the sendInvite method as a prop
+                            {!viewOnly && (
+                                <div className="flex-item" style={{ position: 'relative' }}>
+                                    <button className="btn " onClick={togglePanel} aria-description='"Share a link to your tree'> <Share2 /></button>
+                                    {isPanelVisible && (
+                                        <div className="card mt-3" style={{ width: '450px', left: '-350px', position: 'absolute', top: '25px' }}>
+                                            <div className="card-body">
+                                                <h6 className="card-title">Link to Share your tree</h6>
+                                                <span className='share-link'>{currentURL}</span> <button className="btn btn-secondary btn-sm" onClick={copyLink}>Copy Link</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
-                    onClose={closeInviteModal}
+                            {!viewOnly && (
+                                <div className="flex-item">
+                                    <button
+                                        className="btn btn-primary invite-button"
+                                        onClick={openInviteModal}
+                                        style={{ marginLeft: 'auto' }}
+                                    >
+                                        <FaUserPlus /> Invite Collaborator
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
-                    inviteMessage={inviteMessage} // Pass message as a prop
+                </div>
 
-                    inviteEmail={inviteEmail}
+                {isInviteModalOpen && (
 
-                    setInviteEmail={setInviteEmail}
+                    <InviteCollaboratorModal
 
-                />
+                        sendInvite={sendInvite} // Pass the sendInvite method as a prop
 
+                        onClose={closeInviteModal}
+
+                        inviteMessage={inviteMessage} // Pass message as a prop
+
+                        inviteEmail={inviteEmail}
+
+                        setInviteEmail={setInviteEmail}
+
+                    />
+
+                )}
+                {/* Tree View Section */}
+                <div className="tree-view-section" style={{ position: "relative", width: "100%", height: "600px" }}>
+
+                    {/* Number of People in Top-Left */}
+                    {individuals.length > 0 && (
+                        <div
+                            className="individual-count"
+                            style={{
+                                position: "absolute",
+                                top: "10px",
+                                left: "10px",
+                                color: "#333",
+                                padding: "5px 10px",
+                                fontSize: "16px",
+                                fontWeight: "bold",
+                                zIndex: "10", // Ensures it's above the Balkan tree
+                            }}
+                        >
+                            <span>{individuals.length} of {individuals.length} people</span>
+
+                        </div>
+                    )}
+
+                    {/* Balkan Tree Container */}
+                    {individuals.length > 0 && (
+                        <div
+                            ref={treeContainerRef}
+                            className="tree-container"
+                            style={{ width: "100%", height: "100%" }}
+                        ></div>
+                    )}
+
+                    {/* Welcome Message */}
+                    {individuals.length === 0 && (
+                        <div className="add-individual">
+                            <h2>Welcome to your family tree!<br></br>Start here:</h2>
+                            <button className="add-individual-button" onClick={openModal}>
+                                <span className="add-individual-icon">+</span>
+                                <h1 className="add-individual-text">Add Individual</h1>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Floating Add Button */}
+            {/* Floating Add Button */}
+            {individuals.length > 0 && !isModalOpen && !viewOnly && ( // Hide when isModalOpen is true
+                <button
+                    className="floating-add-button"
+                    onClick={openModal}
+                    title="Add Individual"
+                >
+                    +
+                </button>
             )}
-          {/* Tree View Section */}
-          <div className="tree-view-section" style={{ position: "relative", width: "100%", height: "600px" }}>
- 
-  {/* Number of People in Top-Left */}
-  {individuals.length > 0 && (
-    <div
-      className="individual-count"
-      style={{
-        position: "absolute",
-        top: "10px",
-        left: "10px",
-        color: "#333",
-        padding: "5px 10px",
-        fontSize: "16px",
-        fontWeight: "bold",
-        zIndex: "10", // Ensures it's above the Balkan tree
-      }}
-    >
-                    <span>{individuals.length} of {individuals.length} people</span>
-
-            </div>          
-  )}
-
-  {/* Balkan Tree Container */}
-  {individuals.length > 0 && (
-    <div
-      ref={treeContainerRef}
-      className="tree-container"
-      style={{ width: "100%", height: "100%" }}
-    ></div>
-  )}
-
-  {/* Welcome Message */}
-  {individuals.length === 0 && (
-    <div className="add-individual">
-      <h2>Welcome to your family tree!<br></br>Start here:</h2>
-      <button className="add-individual-button" onClick={openModal}>
-        <span className="add-individual-icon">+</span>
-        <h1 className="add-individual-text">Add Individual</h1>
-      </button>
-    </div>
-  )}
-</div>
-</div>
-      
-        {/* Floating Add Button */}
-{/* Floating Add Button */}
-{individuals.length > 0 && !isModalOpen && ( // Hide when isModalOpen is true
-  <button
-    className="floating-add-button"
-    onClick={openModal}
-    title="Add Individual"
-  >
-    +
-  </button>
-)}
 
 
-            {individuals.length > 0 && (
+            {individuals.length > 0 && !viewOnly && (
                 <div className="delete-buttons-container">
                     {individuals.map((person) => (
                         <button key={person.memberId} onClick={() => deleteFamilyMember(person.memberId)} className="btn btn-danger">
@@ -571,29 +639,29 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     ))}
                 </div>
             )}
-       {/* Attachment Modal */}
-       {isAttachmentModalOpen && (
-    <AttachmentModal
-        memberId={selectedMemberId} // Dynamically set based on the newly added member
-        userId={user.userId} // Pass the user ID of the uploader
-        onClose={closeAttachmentModal}
-        onUpload={uploadAttachment}
-    />
-)}
+            {/* Attachment Modal */}
+            {isAttachmentModalOpen && (
+                <AttachmentModal
+                    memberId={selectedMemberId} // Dynamically set based on the newly added member
+                    userId={user.userId} // Pass the user ID of the uploader
+                    onClose={closeAttachmentModal}
+                    onUpload={uploadAttachment}
+                />
+            )}
 
             {isModalOpen && (
-  <AddPersonModal
-    isOpen={isModalOpen}
-    onClose={closeModal}
-    onSubmit={handleFormSubmit}
-    newPerson={newPerson}
-    setNewPerson={setNewPerson}
-    newRelationship={newRelationship}
-    setNewRelationship={setNewRelationship}
-    individuals={individuals}
-    openAttachmentModal={openAttachmentModal}
-  />
-)}
+                <AddPersonModal
+                    isOpen={isModalOpen}
+                    onClose={closeModal}
+                    onSubmit={handleFormSubmit}
+                    newPerson={newPerson}
+                    setNewPerson={setNewPerson}
+                    newRelationship={newRelationship}
+                    setNewRelationship={setNewRelationship}
+                    individuals={individuals}
+                    openAttachmentModal={openAttachmentModal}
+                />
+            )}
         </div>
     );
 };

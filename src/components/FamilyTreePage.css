@@ -7,6 +7,43 @@
   overflow: hidden;
 }
 
+.custom-toggle .form-check-input {
+  background-color: lightgreen;
+  border-color:  #18bb0f;
+}
+
+.custom-toggle .form-check-input:checked {
+  background-color: #18bb0f;
+  border-color:#18bb0f
+}
+
+.custom-toggle .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(9, 216, 113, 0.25); /* Focus shadow effect */
+}
+
+
+.flex-container { 
+  display: flex; 
+  justify-content: space-between;
+  align-items: center; 
+} 
+ .flex-item:first-child {
+   margin-right: auto;
+ }
+
+ .flex-item:last-child {
+  margin-left: auto;
+}
+     
+.flex-item:not(:first-child) {
+  margin-left: 10px;
+}
+
+.share-link {
+  font-size: .8em;
+  margin-right: 15px;;
+}
+
 .tree-page-header {
   display: flex;
   justify-content: space-between;
