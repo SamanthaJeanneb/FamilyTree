@@ -166,29 +166,33 @@ console.log("Given URL: "+url);
 
   const submit = async () => {
     try {
-      const response = await fetch('/demo/createFamilyTree', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          treeName: treeName || 'SampleTree',
-          privacySetting: visibility === 'public' ? 'Public' : 'Private',
-          userId: userId.toString(),
-        }),
-      });
-  
-      if (response.ok) {
-        const data = await response.text();
-        setMessage(`Success: ${data}`);
-        closeCreatePrompt();
-        navigate(`/tree/${encodeURIComponent(treeName)}`, { state: { treeId: data.treeId, userId } });
-      } else {
-        setMessage(`Error: ${response.status}`);
-      }
+        const response = await fetch('/demo/createFamilyTree', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                treeName: treeName || 'SampleTree',
+                privacySetting: visibility === 'public' ? 'Public' : 'Private',
+                userId: userId.toString(),
+            }),
+        });
+
+        if (response.ok) {
+            const data = await response.json(); // Parse JSON response
+            if (data.treeId) {
+                setMessage(`Success: Tree '${treeName}' created successfully.`);
+                closeCreatePrompt();
+                navigate(`/tree/${encodeURIComponent(treeName)}`, { state: { treeId: data.treeId, userId } });
+            } else {
+                setMessage(`Error: ${data.error || 'Tree ID not returned.'}`);
+            }
+        } else {
+            setMessage(`Error: ${response.status}`);
+        }
     } catch (error) {
-      setMessage(`Error: ${error.message}`);
+        setMessage(`Error: ${error.message}`);
     }
-  };
-  
+};
+
 
   const openTree = (treeId, treeName, userId) => {
     navigate(`/tree/${encodeURIComponent(treeName)}`, { state: { treeId, userId } });

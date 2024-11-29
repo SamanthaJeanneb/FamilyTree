@@ -9,6 +9,7 @@ import InviteCollaboratorModal from "./InviteCollaborator.jsx";
 import FamilyTreePageHeader from '../navigation/FamilyTreePageHeader.jsx';
 import AttachmentModal from './modals/AttachmentModal.jsx';
 import AddPersonModal from './modals/AddPersonModal';
+import TreeActionBar from '../navigation/TreeActionBar.jsx';
 
 
 const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
@@ -26,24 +27,12 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [inviteMessage, setInviteMessage] = useState('');
     const [inviteEmail, setInviteEmail] = useState('');
-
+    const [collaborationRole, setCollaborationRole] = useState(null); // 'Owner', 'Editor', 'Viewer'
     const [viewOnly, setViewOnly] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
 
-    const togglePrivacy = () => {
-        // This is the place where we should call "UpdatePrivacySettings" to save the new privacy setting that the user just clicked passing the value in isPublic
-        setIsPublic(!isPublic);
-    };
-
     const [isPanelVisible, setIsPanelVisible] = useState(false);
-    const togglePanel = () => { setIsPanelVisible(!isPanelVisible); };
     const currentURL = `${window.location.protocol}//${window.location.host}${location.pathname}${location.search}${location.hash}`;
-
-    const copyLink = () => {
-        navigator.clipboard.writeText(currentURL)
-            .then(() => { togglePanel(); })
-            .catch(err => { console.error('Failed to copy text: ', err); });
-    };
 
 
     const [newPerson, setNewPerson] = useState({
@@ -95,7 +84,26 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         setSelectedMemberId(null);
         setIsAttachmentModalOpen(false);
     };
-
+    const fetchCollaborationRole = async () => {
+        try {
+            const response = await axios.get('/getCollaborationByUser', {
+                params: { userId: user.id },
+                headers: { Authorization: `Bearer ${user.token}` },
+            });
+            const collaborations = response.data;
+            const treeCollaboration = collaborations.find(c => c.familyTree.id === treeId);
+            if (treeCollaboration) {
+                setCollaborationRole(treeCollaboration.role);
+                setViewOnly(treeCollaboration.role === 'Viewer');
+            }
+        } catch (error) {
+            console.error('Error fetching collaboration role:', error);
+        }
+    };
+    useEffect(() => {
+        fetchCollaborationRole();
+    }, [treeId]);
+      
     const uploadAttachment = (memberId, typeOfFile, file) => {
         const reader = new FileReader();
 
@@ -298,7 +306,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         const data = {
             treeId: treeId,
             userEmail: inviteEmail, // Replace with logic to fetch userId by email if required
-            role: 'Viewer', // Fixed role
+            role: 'Editor', // Fixed role
         }
         axios
             .post(
@@ -352,6 +360,10 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     };
 
     const deleteFamilyMember = (memberId) => {
+        if (collaborationRole === 'Viewer' || collaborationRole === 'Editor') {
+            alert('You do not have permission to delete members.');
+            return;
+        } else {
         axios
             .post('/demo/deleteFamilyMember', new URLSearchParams({ memberId: memberId.toString() }), {
                 headers: {
@@ -372,6 +384,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 console.error('Error deleting family member:', error);
                 alert('Failed to delete family member.');
             });
+        }
     };
 
 
@@ -389,6 +402,16 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 
 
     const handleFormSubmit = (e) => {
+        console.log('Current collaborationRole:', collaborationRole);
+
+        if (collaborationRole === 'Editor') {
+            alert('Your edit has been submitted for approval.');
+            return;
+        }
+        if (collaborationRole === 'Viewer') {
+            alert('You do not have permission to add individuals.');
+            return;
+        }
         e.preventDefault();
 
         const formattedBirthdate = newPerson.birthdate
@@ -487,7 +510,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     return (
         <div className="tree-page-container">
             {/* Top Navigation Bar */}
-
+    
             {/* Main Content */}
             <div
                 style={{
@@ -497,84 +520,41 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     height: '100vh',
                     overflow: 'hidden',
                 }}
-            >
-                {/* Action Navigation Bar */}
-                <div
-                    className="tree-action-header"
+            ><div
+            className="wdswdwd"
 
-                >
-                    <FamilyTreePageHeader username={username} />
+        >
+            <FamilyTreePageHeader username={username} />
+            </div>
+            <div>
+            <TreeActionBar
+  treeName={treeName}
+  isPublic={isPublic}
+  setPrivacy={setIsPublic} // Pass the state updater directly
+  currentURL={currentURL}
+  viewOnly={viewOnly}
+  treeId={treeId}
+  userToken={user.token} // Pass user token for authorization
+  setInviteModalOpen={setIsInviteModalOpen} // Pass modal state updater
+  setInviteMessage={setInviteMessage} // Pass message state updater
+  inviteEmail={inviteEmail}
+  setInviteEmail={setInviteEmail}
+/>
 
-
-                    <div className="container-fluid m-0 p-0">
-                        <div className="flex-container">
-                            <div className="flex-item">
-                                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
-                                    Family Tree <span style={{ fontSize: '18px', fontWeight: 'normal' }}>| {treeName}</span>
-                                </h2>
-                            </div>
-
-                            {!viewOnly && (
-                                <div className="flex-item">
-                                    <button className="btn" onClick={openShareModal} style={{ marginLeft: 'auto' }}>
-                                        <div className="form-check form-switch custom-toggle">
-                                            <input className="form-check-input" type="checkbox" id="switchPublicPrivate" checked={isPublic} onChange={togglePrivacy} />
-                                            <label className="form-check-label" htmlFor="switchPublicPrivate">{isPublic ? 'Public' : 'Private'}</label>
-                                        </div>
-                                    </button>
-                                </div>
-                            )}
-
-                            {!viewOnly && (
-                                <div className="flex-item" style={{ position: 'relative' }}>
-                                    <button className="btn " onClick={togglePanel} aria-description='"Share a link to your tree'> <Share2 /></button>
-                                    {isPanelVisible && (
-                                        <div className="card mt-3" style={{ width: '450px', left: '-350px', position: 'absolute', top: '25px' }}>
-                                            <div className="card-body">
-                                                <h6 className="card-title">Link to Share your tree</h6>
-                                                <span className='share-link'>{currentURL}</span> <button className="btn btn-secondary btn-sm" onClick={copyLink}>Copy Link</button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {!viewOnly && (
-                                <div className="flex-item">
-                                    <button
-                                        className="btn btn-primary invite-button"
-                                        onClick={openInviteModal}
-                                        style={{ marginLeft: 'auto' }}
-                                    >
-                                        <FaUserPlus /> Invite Collaborator
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                </div>
-
-                {isInviteModalOpen && (
-
-                    <InviteCollaboratorModal
-
-                        sendInvite={sendInvite} // Pass the sendInvite method as a prop
-
-                        onClose={closeInviteModal}
-
-                        inviteMessage={inviteMessage} // Pass message as a prop
-
-                        inviteEmail={inviteEmail}
-
-                        setInviteEmail={setInviteEmail}
-
-                    />
-
-                )}
+    {isInviteModalOpen && (
+        <InviteCollaboratorModal
+            sendInvite={sendInvite}
+            onClose={closeInviteModal}
+            inviteMessage={inviteMessage}
+            inviteEmail={inviteEmail}
+            setInviteEmail={setInviteEmail}
+        />
+    )}
+</div>
+    
                 {/* Tree View Section */}
                 <div className="tree-view-section" style={{ position: "relative", width: "100%", height: "600px" }}>
-
+    
                     {/* Number of People in Top-Left */}
                     {individuals.length > 0 && (
                         <div
@@ -591,10 +571,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                             }}
                         >
                             <span>{individuals.length} of {individuals.length} people</span>
-
                         </div>
                     )}
-
+    
                     {/* Balkan Tree Container */}
                     {individuals.length > 0 && (
                         <div
@@ -603,9 +582,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                             style={{ width: "100%", height: "100%" }}
                         ></div>
                     )}
-
+    
                     {/* Welcome Message */}
-                    {individuals.length === 0 && (
+                    {collaborationRole !== 'Viewer' && individuals.length === 0 && (
                         <div className="add-individual">
                             <h2>Welcome to your family tree!<br></br>Start here:</h2>
                             <button className="add-individual-button" onClick={openModal}>
@@ -616,10 +595,10 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     )}
                 </div>
             </div>
-
+    
             {/* Floating Add Button */}
-            {/* Floating Add Button */}
-            {individuals.length > 0 && !isModalOpen && !viewOnly && ( // Hide when isModalOpen is true
+            {individuals.length > 0 && !isModalOpen && !viewOnly && collaborationRole !== 'Viewer' && (
+                
                 <button
                     className="floating-add-button"
                     onClick={openModal}
@@ -628,8 +607,8 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     +
                 </button>
             )}
-
-
+    
+            {/* Delete Buttons */}
             {individuals.length > 0 && !viewOnly && (
                 <div className="delete-buttons-container">
                     {individuals.map((person) => (
@@ -639,6 +618,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     ))}
                 </div>
             )}
+    
             {/* Attachment Modal */}
             {isAttachmentModalOpen && (
                 <AttachmentModal
@@ -648,7 +628,8 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     onUpload={uploadAttachment}
                 />
             )}
-
+    
+            {/* Add Person Modal */}
             {isModalOpen && (
                 <AddPersonModal
                     isOpen={isModalOpen}
@@ -664,6 +645,5 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             )}
         </div>
     );
-};
-
+}
 export default FamilyTreePage;

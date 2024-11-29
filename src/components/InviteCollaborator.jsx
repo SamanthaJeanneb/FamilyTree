@@ -19,7 +19,7 @@ const InviteCollaboratorModal = ({ sendInvite, onClose, inviteMessage, inviteEma
                         onChange={(e) => setInviteEmail(e.target.value)}
                         required
                     />
-                    <p>Role: Viewer (Default)</p>
+                    <p>Role: Editor (Default)</p>
                     <button type="submit" className="btn btn-success">
                         Send Invite
                     </button>
