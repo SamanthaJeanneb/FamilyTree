@@ -1,0 +1,40 @@
+.navbar-nav .nav-item .nav-link {
+    font-size: 18px;
+    color: black;
+    cursor: pointer;
+    position: relative;
+    margin-right: 30px;
+    padding-bottom: 5px;
+    padding-left: 30px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .navbar-nav .nav-item .nav-link.default-active {
+    color: #00BF4D;
+  }
+  
+  .navbar-nav .nav-item .nav-link.default-active::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 20px;
+    right: 0;
+    height: 2px;
+    background-color: #00BF4D;
+  }
+  
+  .navbar-nav .nav-item .nav-link.active {
+    color: #00BF4D;
+  }
+  
+  .navbar-nav .nav-item .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 20px;
+    right: 0;
+    height: 2px;
+    background-color: #00BF4D;
+  }
+  

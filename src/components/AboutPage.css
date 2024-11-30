@@ -1,0 +1,46 @@
+/* AboutPage.css */
+.about-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* Ensure the content is vertically centered */
+    padding: 20px;
+    text-align: center; /* Center-align text */
+    background-color: #f9f9f9; /* Light background color for aesthetics */
+    color: #333; /* Standard text color */
+  }
+  
+  .about-container h1 {
+    margin-bottom: 20px;
+    font-size: 2.5rem;
+    color: #2c3e50; /* A darker shade for the heading */
+  }
+  
+  .about-container p {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    line-height: 1.6;
+  }
+  
+  .about-container ul {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0;
+  }
+  
+  .about-container ul li {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+  
+  .about-container a {
+    color: #3498db; /* Use a blue color for links */
+    text-decoration: underline;
+  }
+  
+  .about-container section {
+    margin-top: 40px;
+    width: 100%;
+    max-width: 600px; /* Restrict content width for readability */
+  }
+  

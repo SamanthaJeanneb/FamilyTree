@@ -157,7 +157,7 @@ const TreeActionBar = ({
               >
                 <Settings
                   style={{
-                    color: activeIcons.settings ? 'green' : 'black',
+                    color: activeIcons.settings ? '#00BF4D' : 'black',
                   }}
                 />
               </button>
@@ -242,7 +242,7 @@ const TreeActionBar = ({
             >
               <User
                 style={{
-                  color: activeIcons.collaborators ? 'green' : 'black',
+                  color: activeIcons.collaborators ? '#00BF4D' : 'black',
                 }}
               />
             </button>

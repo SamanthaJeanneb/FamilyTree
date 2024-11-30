@@ -1,10 +1,15 @@
 import React from 'react';
 import { FaBell, FaCaretDown } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './FamilyTreePageHeader.css'; // Import the custom CSS
 
 const FamilyTreePageHeader = ({ username }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine if the "About" page is active
+  const isAboutActive = location.pathname === '/about';
 
   return (
     <nav
@@ -39,57 +44,28 @@ const FamilyTreePageHeader = ({ username }) => {
           style={{ flex: 1 }}
         >
           <ul className="navbar-nav">
-            <li
-              className="nav-item"
-              style={{ position: 'relative', marginRight: '30px' }}
-            >
+            <li className="nav-item">
               <span
-                className="nav-link fw-bold"
-                style={{
-                  fontSize: '18px',
-                  color: 'green',
-                  cursor: 'default',
-                  paddingBottom: '0px', // Ensures spacing matches other links
-                }}
+                className={`nav-link ${!isAboutActive ? 'default-active' : ''}`}
+                onClick={() => navigate('/tree')}
               >
                 Family Tree
               </span>
-              {/* Green underline */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '-3px', // Aligns underline to the navbar's bottom edge
-                  left: 0,
-                  right: 0,
-                  height: '3px',
-                  backgroundColor: 'green',
-                }}
-              ></div>
             </li>
             <li className="nav-item">
-              <a
-                href="/dashboard"
-                className="nav-link fw-bold"
-                style={{
-                  fontSize: '18px',
-                  marginRight: '30px',
-                  color: 'black',
-                }}
+              <span                className="nav-link"
+
               >
                 Dashboard
-              </a>
+              </span>
             </li>
             <li className="nav-item">
-              <a
-                href="/about"
-                className="nav-link fw-bold"
-                style={{
-                  fontSize: '18px',
-                  color: 'black',
-                }}
+              <span
+                className={`nav-link ${isAboutActive ? 'active' : ''}`}
+                onClick={() => navigate('/about')}
               >
                 About
-              </a>
+              </span>
             </li>
           </ul>
         </div>

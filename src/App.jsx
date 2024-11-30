@@ -8,6 +8,7 @@ import FamilyTreePage from "./components/FamilyTreePage";
 import LoginPage from "./components/LoginPage";
 import AccountPage from "./components/AccountPage";
 import SearchResults from "./components/SearchResults";
+import AboutPage from "./components/AboutPage"; // Import AboutPage
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaBullseye } from "react-icons/fa6";
@@ -17,7 +18,6 @@ const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false); // Set to true for authenticated access
     const [isGuest, setIsGuest] = useState(false); // Set to true for guest access if needed
     const [user, setUser] = useState({ name: "Test User" }); // Add mock user data
-
 
     useEffect(() => {
         axios.get('http://localhost:8080/api/login', { withCredentials: true })
@@ -36,7 +36,6 @@ const App = () => {
             });
     }, []);
 
-
     return (
         <Router>
             <div className="app-container">
@@ -53,13 +52,26 @@ const App = () => {
                             ))
                         }
                     />
-                    <Route path="/dashboard" element={<DashboardPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser}  />} />
+                    <Route
+                        path="/dashboard"
+                        element={<DashboardPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} user={user} setUser={setUser} />}
+                    />
                     <Route path="/guest-dashboard" element={<GuestDashboardPage />} />
                     <Route path="/test" element={<FamilyTreePageTest />} />
-                    <Route path="/tree/:treeName" element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} user={user} />} />
+                    <Route
+                        path="/tree/:treeName"
+                        element={<FamilyTreePage setIsAuthenticated={setIsAuthenticated} setUser={setUser} user={user} />}
+                    />
                     <Route path="/search-results" element={<SearchResults setIsAuthenticated={setIsAuthenticated} setUser={setUser} user={user} />} />
                     <Route path="/home" element={<HomePage />} />
-                    <Route path="/account" element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest} user={user} setUser={setUser} />} />
+                    <Route
+                        path="/account"
+                        element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest} user={user} setUser={setUser} />}
+                    />
+                   <Route
+  path="/about"
+  element={<AboutPage username={user.name} />}
+/>
                 </Routes>
             </div>
         </Router>

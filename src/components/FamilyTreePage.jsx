@@ -608,7 +608,11 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             className="wdswdwd"
 
         >
-            <FamilyTreePageHeader username={username} />
+          <FamilyTreePageHeader 
+    username={username} 
+    currentTreePath={`/tree/${treeName}`} 
+/>
+
             </div>
             <div>
             <TreeActionBar
