@@ -276,11 +276,25 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         try {
             familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
                 template: "john",
-                layout: FamilyTree.ROUNDED,
+                padding: 50,
                 nodes: nodes,
+                editForm: {
+                    readOnly: true,
+                    elements: [
+                        { type: 'textbox', label: 'Name', binding: 'name' },
+                        { type: 'textbox', label: 'Birthdate', binding: 'birthdate'},    
+                        { type: 'textbox', label: 'Deathdate', binding: 'deathdate'},    
+                        { type: 'textbox', label: 'Additional Information', binding: 'additionalInfo'}    
+                    ]
+
+                },
                 nodeBinding: {
                     field_0: "name",
                     img_0: "img",
+                },
+                toolbar: {
+                    zoom: true,
+                    fit: true,
                 },
                 connectors: {
                     type: "step",
@@ -608,7 +622,12 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         const selectedNode = individuals.find((person) => person.memberId === nodeId);
     
         if (selectedNode) {
-            setSelectedMember(selectedNode); // Set the selected member for editing
+            setSelectedMember({
+                ...selectedNode,
+                birthdate: selectedNode.birthdate || "",
+                deathdate: selectedNode.deathdate || "",
+                additionalInfo: selectedNode.additionalInfo || "",
+            }); // Set the selected member for editing
             setIsEditModalOpen(true); // Open the modal
         }
     };
@@ -658,7 +677,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         />
     )}
 </div>
-    
                 {/* Tree View Section */}
                 <div className="tree-view-section" style={{ position: "relative", width: "100%", height: "600px" }}>
     
@@ -674,21 +692,19 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                                 padding: "5px 10px",
                                 fontSize: "16px",
                                 fontWeight: "bold",
-                                zIndex: "10", // Ensures it's above the Balkan tree
+                                zIndex: "10",
                             }}
                         >
                             <span>{individuals.length} of {individuals.length} people</span>
                         </div>
                     )}
     
-{/* Balkan Tree Container */}
 <div
     ref={treeContainerRef}
     className="tree-container"
     style={{ width: "100%", height: "100%" }}
 ></div>
 
-{/* Edit Modal */}
 <EditModal
     isOpen={isEditModalOpen}
     member={selectedMember}

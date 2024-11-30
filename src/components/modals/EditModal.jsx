@@ -4,12 +4,21 @@ import { FaTrash } from "react-icons/fa";
 const EditModal = ({ isOpen, member, onClose, onSave, onDelete }) => {
     const [formData, setFormData] = useState({
         name: member?.name || "",
+        birthdate: member?.birthdate || "",
+        deathdate: member?.deathdate || "",
+        additionalInfo: member?.additionalInfo || "",
         gender: member?.gender || "",
     });
 
     useEffect(() => {
         if (member) {
-            setFormData({ name: member.name, gender: member.gender });
+            setFormData({
+                name: member.name,
+                birthdate: member.birthdate,
+                deathdate: member.deathdate,
+                additionalInfo: member.additionalInfo,
+                gender: member.gender,
+            });
         }
     }, [member]);
 
@@ -46,7 +55,7 @@ const EditModal = ({ isOpen, member, onClose, onSave, onDelete }) => {
                     boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
                 }}
             >
-                <h2 className="text-center">Edit Member</h2>
+                <h2 className="text-center">Edit Individual</h2>
                 <div className="form-group">
                     <label>Name:</label>
                     <input
@@ -54,6 +63,35 @@ const EditModal = ({ isOpen, member, onClose, onSave, onDelete }) => {
                         className="form-control"
                         name="name"
                         value={formData.name}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Birthdate:</label>
+                    <input
+                        type="date"
+                        className="form-control"
+                        name="birthdate"
+                        value={formData.birthdate}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Deathdate:</label>
+                    <input
+                        type="date"
+                        className="form-control"
+                        name="deathdate"
+                        value={formData.deathdate}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Additional Info:</label>
+                    <textarea
+                        className="form-control"
+                        name="additionalInfo"
+                        value={formData.additionalInfo}
                         onChange={handleChange}
                     />
                 </div>
