@@ -10,6 +10,7 @@ const TreeActionBar = ({
   viewOnly,
   treeId,
   userToken,
+  userId,
   setInviteModalOpen,
 }) => {
   const [isSettingsDropdownVisible, setIsSettingsDropdownVisible] = useState(false);
@@ -17,6 +18,8 @@ const TreeActionBar = ({
   const [owner, setOwner] = useState(null);
   const [collaborators, setCollaborators] = useState([]);
   const [viewers, setViewers] = useState([]);
+  const [ownedTrees, setOwnedTrees] = useState([]);
+  const [selectedMergeTree, setSelectedMergeTree] = useState(null);
   const [activeIcons, setActiveIcons] = useState({
     settings: false,
     collaborators: false,
@@ -71,17 +74,65 @@ const TreeActionBar = ({
       console.error('Error fetching collaborations:', error);
     }
   };
-
+  const fetchUserTrees = async () => {
+    try {
+      const response = await axios.get('/demo/getUserFamilyTrees', {
+        params: { userId },
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+  
+      console.log('API Response:', response.data);
+  
+      // Directly set the response data
+      setOwnedTrees(response.data); // Avoid unnecessary transformations
+    } catch (error) {
+      console.error('Error fetching user trees:', error);
+    }
+  };
   useEffect(() => {
     if (treeId) {
       fetchCollaborations();
     }
-  }, [treeId]);
+    if (userId) {
+      fetchUserTrees();
+    }
+  }, [treeId, userId]);
 
   const togglePrivacy = () => {
     setPrivacy(!isPublic);
   };
 
+  const handleMerge = async () => {
+    if (!selectedMergeTree) {
+      alert('Please select a tree to merge with.');
+      return;
+    }
+  
+    try {
+      console.log('Selected Merge Tree ID:', selectedMergeTree); // Log the numeric ID
+  
+      const response = await axios.post(
+        '/demo/requestMerge',
+        null, // No request body
+        {
+          params: {
+            requesterTreeId: treeId, // Current tree ID
+            targetTreeId: selectedMergeTree, // Numeric ID of the selected tree
+            initiatorUserId: userId, // User initiating the merge
+          },
+          headers: { Authorization: `Bearer ${userToken}` },
+        }
+      );
+  
+      console.log('Merge Request Response:', response.data);
+      alert(`Merge request sent: ${response.data}`);
+    } catch (error) {
+      console.error('Error requesting merge:', error.response || error.message);
+      alert('An error occurred while requesting the merge.');
+    }
+  };
+  
+  
   return (
     <div className="tree-action-header">
       <div className="container-fluid m-0 p-0">
@@ -147,6 +198,35 @@ const TreeActionBar = ({
                     >
                       Copy Share Link
                     </button>
+                    {/* Merge Trees */}
+                    <div className="form-group my-2">
+                      <label htmlFor="mergeTreesDropdown">Merge with Tree</label>
+                      <select
+                        id="mergeTreesDropdown"
+                        className="form-select"
+                        value={selectedMergeTree || ''}
+                        onChange={(e) => setSelectedMergeTree(e.target.value)}
+                      >
+                        <option value="" disabled>
+                          Select a tree
+                        </option>
+                      {ownedTrees
+    .filter((tree) => tree.treeId !== treeId)
+    .map((tree) => (
+      <option key={tree.treeId} value={tree.treeId}>
+        {tree.treeName}
+      </option>
+    ))}
+
+                      </select>
+                      <button
+                        className="btn btn-primary btn-sm w-100 mt-2"
+                        onClick={handleMerge}
+                        disabled={!selectedMergeTree}
+                      >
+                        Merge Trees
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

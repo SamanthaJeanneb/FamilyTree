@@ -209,7 +209,7 @@ svg.john .field_1 {
   justify-content: center; /* Horizontally center the content */
   align-items: center; /* Vertically center the content */
   text-align: center;
-  margin: 0 auto; /* Center the container horizontally */
+  margin-bottom: 35vh; /* Center the container horizontally */
   flex-direction: column; /* Stack the button and text vertically */
 }
 

@@ -280,6 +280,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 nodes: nodes,
                 editForm: {
                     readOnly: true,
+                    generateElementsFromFields: false,
                     elements: [
                         { type: 'textbox', label: 'Name', binding: 'name' },
                         { type: 'textbox', label: 'Birthdate', binding: 'birthdate'},    
@@ -322,6 +323,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     },
                 },
                 mode: "light",
+                
             });
     
             console.log("FamilyTree rendered successfully.");
@@ -389,40 +391,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     };
 
-    const deleteFamilyMember = (memberId) => {
-        if (collaborationRole === 'Viewer' || collaborationRole === 'Editor') {
-            alert('You do not have permission to delete members.');
-            return;
-        } else {
-        axios
-            .post('/demo/deleteFamilyMember', new URLSearchParams({ memberId: memberId.toString() }), {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-            })
-            .then(() => {
-                // Remove the specific family member's image from localStorage
-                localStorage.removeItem(`member_${memberId}_image`);
-
-                // Refresh the family members list
-                fetchFamilyMembers();
-
-                alert('Family member and their associated image have been deleted.');
-            })
-            .catch((error) => {
-                console.error('Error deleting family member:', error);
-                alert('Failed to delete family member.');
-            });
-        }
-    };
-
 
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
-
-    const openInviteModal = () => setIsInviteModalOpen(true);
-    const openShareModal = () => { };
 
     const closeInviteModal = () => {
         setIsInviteModalOpen(false);
@@ -523,19 +494,11 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     }, [treeId]);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewPerson((prevPerson) => ({ ...prevPerson, [name]: value }));
-    };
 
     const onClose = () => {
         setIsInviteModalOpen(false);
     }
 
-    const handleRelationshipChange = (e) => {
-        const { name, value } = e.target;
-        setNewRelationship((prevRel) => ({ ...prevRel, [name]: value }));
-    };
 
     const closeEditModal = () => {
         setSelectedMember(null); // Clear the selected member
@@ -622,12 +585,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         const selectedNode = individuals.find((person) => person.memberId === nodeId);
     
         if (selectedNode) {
-            setSelectedMember({
-                ...selectedNode,
-                birthdate: selectedNode.birthdate || "",
-                deathdate: selectedNode.deathdate || "",
-                additionalInfo: selectedNode.additionalInfo || "",
-            }); // Set the selected member for editing
+            setSelectedMember(selectedNode); // Set the selected member for editing
             setIsEditModalOpen(true); // Open the modal
         }
     };
@@ -661,6 +619,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
   viewOnly={viewOnly}
   treeId={treeId}
   userToken={user.token} // Pass user token for authorization
+  userId={userId} // Replace `currentUser.id` with your app's user ID logic
   setInviteModalOpen={setIsInviteModalOpen} // Pass modal state updater
   setInviteMessage={setInviteMessage} // Pass message state updater
   inviteEmail={inviteEmail}
@@ -711,9 +670,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     onClose={closeEditModal}
     onSave={saveMemberChanges}
     onDelete={deleteMember}
-/>
-
-    
+/>  
                     {/* Welcome Message */}
                     {collaborationRole !== 'Viewer' && individuals.length === 0 && (
                         <div className="add-individual">
