@@ -259,7 +259,7 @@ console.log("Given URL: "+url);
             <div className="recent-trees">
               <h4>Recent</h4>
               {trees.slice(0, 3).map((tree) => (
-                  <a key={tree.id} href="#" onClick={() => openTree(tree.id, tree.treeName, user.id)
+                  <a key={tree.id} href="#" onClick={() => openTree(tree.id, tree.treeName, userId)
                   }>
                     {tree.treeName}
                   </a>

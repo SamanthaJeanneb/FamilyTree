@@ -10,6 +10,7 @@ import FamilyTreePageHeader from '../navigation/FamilyTreePageHeader.jsx';
 import AttachmentModal from './modals/AttachmentModal.jsx';
 import AddPersonModal from './modals/AddPersonModal';
 import TreeActionBar from '../navigation/TreeActionBar.jsx';
+import EditModal from './modals/EditModal.jsx';
 
 
 const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
@@ -30,7 +31,8 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     const [collaborationRole, setCollaborationRole] = useState(null); // 'Owner', 'Editor', 'Viewer'
     const [viewOnly, setViewOnly] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
-
+    const [selectedMember, setSelectedMember] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPanelVisible, setIsPanelVisible] = useState(false);
     const currentURL = `${window.location.protocol}//${window.location.host}${location.pathname}${location.search}${location.hash}`;
 
@@ -249,14 +251,12 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     };
 
-
-
     const renderFamilyTree = () => {
         if (!treeContainerRef.current) {
-            console.error('Tree container is not mounted yet.');
+            console.error("Tree container is not mounted yet.");
             return;
         }
-
+    
         const nodes = individuals.map((person) => ({
             id: person.memberId,
             name: person.name,
@@ -264,42 +264,58 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             mid: person.mid || null,
             fid: person.fid || null,
             gender: person.gender,
-            img: person.img || '/profile-placeholder.png', // Use updated image
-            template: person.gender === 'male' ? 'john_male' : person.gender === 'female' ? 'john_female' : 'john',
+            img: person.img || "/profile-placeholder.png", // Use updated image
+            template:
+                person.gender === "male"
+                    ? "john_male"
+                    : person.gender === "female"
+                    ? "john_female"
+                    : "john",
         }));
-
+    
         try {
             familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
-                template: 'john',
+                template: "john",
                 layout: FamilyTree.ROUNDED,
                 nodes: nodes,
                 nodeBinding: {
-                    field_0: 'name',
-                    img_0: 'img',
+                    field_0: "name",
+                    img_0: "img",
                 },
                 connectors: {
-                    type: 'step',
+                    type: "step",
+                },
+                nodeMenu: {
+                    edit: {
+                        text: "Edit",
+                        onClick: (nodeId) => handleEditNode(nodeId),
+                    },
+                    add: {
+                        text: "Add",
+                        onClick: () => openModal(), // Open Add Modal
+                    },
                 },
                 menu: {
                     pdfPreview: {
-                        text: 'PDF Preview',
-                        icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+                        text: "PDF Preview",
+                        icon: FamilyTree.icon.pdf(24, 24, "#7A7A7A"),
                         onClick: previewPDF,
                     },
                     exportPDF: {
-                        text: 'Export PDF',
-                        icon: FamilyTree.icon.pdf(24, 24, '#7A7A7A'),
+                        text: "Export PDF",
+                        icon: FamilyTree.icon.pdf(24, 24, "#7A7A7A"),
                         onClick: exportPDF,
                     },
                 },
-                mode: 'light',
+                mode: "light",
             });
-
-            console.log('FamilyTree rendered successfully.');
+    
+            console.log("FamilyTree rendered successfully.");
         } catch (error) {
-            console.error('Error rendering FamilyTree:', error);
+            console.error("Error rendering FamilyTree:", error);
         }
     };
+    
 
 
     const sendInvite = () => {
@@ -314,7 +330,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 {
                     treeId: treeId,
                     userEmail: inviteEmail,
-                    role: 'Viewer',
+                    role: 'Editor',
                 },
 
                 {
@@ -507,6 +523,97 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         setNewRelationship((prevRel) => ({ ...prevRel, [name]: value }));
     };
 
+    const closeEditModal = () => {
+        setSelectedMember(null); // Clear the selected member
+        setIsEditModalOpen(false); // Close the modal
+    };
+    const saveMemberChanges = async (updatedMember) => {
+        try {
+            const payload = new URLSearchParams();
+            payload.append("memberId", updatedMember.memberId); // Required parameter
+    
+            if (updatedMember.name) payload.append("name", updatedMember.name);
+    
+            if (updatedMember.birthdate) {
+                const formattedBirthdate = new Date(updatedMember.birthdate)
+                    .toISOString()
+                    .split("T")[0]; // Format to yyyy-MM-dd
+                payload.append("birthdate", formattedBirthdate);
+            }
+    
+            if (updatedMember.gender) {
+                // Capitalize the first letter of gender
+                const gender = updatedMember.gender.charAt(0).toUpperCase() + updatedMember.gender.slice(1).toLowerCase();
+                payload.append("gender", gender);
+            }
+    
+            if (updatedMember.deathdate) {
+                const formattedDeathdate = new Date(updatedMember.deathdate)
+                    .toISOString()
+                    .split("T")[0];
+                payload.append("deathdate", formattedDeathdate);
+            }
+    
+            if (updatedMember.additionalInfo) payload.append("additionalInfo", updatedMember.additionalInfo);
+            if (updatedMember.pid) payload.append("pid", updatedMember.pid);
+            if (updatedMember.mid) payload.append("mid", updatedMember.mid);
+            if (updatedMember.fid) payload.append("fid", updatedMember.fid);
+    
+            console.log("Payload sent to backend:", payload.toString());
+    
+            const response = await axios.post(
+                "http://localhost:8080/demo/editFamilyMember",
+                payload,
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                }
+            );
+    
+            if (response.data === "Family Member Updated Successfully") {
+                alert("Family member updated successfully!");
+                fetchFamilyMembers(); // Refresh the tree
+                closeEditModal(); // Close the modal
+            } else {
+                console.error("Unexpected response:", response.data);
+                alert("Failed to save changes. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error updating member:", error);
+            alert("Failed to save changes. Please try again.");
+        }
+    };
+    
+    
+    const deleteMember = async (memberId) => {
+        try {
+            await axios.post(
+                "/demo/deleteFamilyMember",
+                new URLSearchParams({ memberId: memberId.toString() }),
+                {
+                    headers: { Authorization: `Bearer ${user.token}` },
+                }
+            );
+            fetchFamilyMembers(); // Refresh the tree after deletion
+            closeEditModal(); // Close the modal
+        } catch (error) {
+            console.error("Error deleting member:", error);
+            alert("Failed to delete the member. Please try again.");
+        }
+    };
+    const handleEditNode = (nodeId) => {
+        const selectedNode = individuals.find((person) => person.memberId === nodeId);
+    
+        if (selectedNode) {
+            setSelectedMember(selectedNode); // Set the selected member for editing
+            setIsEditModalOpen(true); // Open the modal
+        }
+    };
+    
+    
     return (
         <div className="tree-page-container">
             {/* Top Navigation Bar */}
@@ -574,14 +681,22 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                         </div>
                     )}
     
-                    {/* Balkan Tree Container */}
-                    {individuals.length > 0 && (
-                        <div
-                            ref={treeContainerRef}
-                            className="tree-container"
-                            style={{ width: "100%", height: "100%" }}
-                        ></div>
-                    )}
+{/* Balkan Tree Container */}
+<div
+    ref={treeContainerRef}
+    className="tree-container"
+    style={{ width: "100%", height: "100%" }}
+></div>
+
+{/* Edit Modal */}
+<EditModal
+    isOpen={isEditModalOpen}
+    member={selectedMember}
+    onClose={closeEditModal}
+    onSave={saveMemberChanges}
+    onDelete={deleteMember}
+/>
+
     
                     {/* Welcome Message */}
                     {collaborationRole !== 'Viewer' && individuals.length === 0 && (
@@ -608,16 +723,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 </button>
             )}
     
-            {/* Delete Buttons */}
-            {individuals.length > 0 && !viewOnly && (
-                <div className="delete-buttons-container">
-                    {individuals.map((person) => (
-                        <button key={person.memberId} onClick={() => deleteFamilyMember(person.memberId)} className="btn btn-danger">
-                            <FaTrash /> {person.name}
-                        </button>
-                    ))}
-                </div>
-            )}
     
             {/* Attachment Modal */}
             {isAttachmentModalOpen && (
