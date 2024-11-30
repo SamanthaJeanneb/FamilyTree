@@ -194,9 +194,11 @@ console.log("Given URL: "+url);
 };
 
 
-  const openTree = (treeId, treeName, userId) => {
-    navigate(`/tree/${encodeURIComponent(treeName)}`, { state: { treeId, userId } });
-  };
+const openTree = (treeId, treeName, userId) => {
+  console.log("Opening tree with ID:", treeId); // Debugging
+  navigate(`/tree/${encodeURIComponent(treeName)}`, { state: { treeId, userId } });
+};
+
   
   // Drag and drop handlers
   const handleDragStart = (e, treeId) => {
@@ -257,14 +259,22 @@ console.log("Given URL: "+url);
               Collaborator Trees
             </a>
             <div className="recent-trees">
-              <h4>Recent</h4>
-              {trees.slice(0, 3).map((tree) => (
-                  <a key={tree.id} href="#" onClick={() => openTree(tree.id, tree.treeName, userId)
-                  }>
-                    {tree.treeName}
-                  </a>
-              ))}
-            </div>
+    <h4>Recent</h4>
+    {trees.slice(0, 3).map((tree) => (
+        <a
+            key={tree.id}
+            href="#"
+            onClick={(e) => {
+                e.preventDefault(); // Prevent the default action
+                openTree(tree.id, tree.treeName, user.id); // Use `user.id` as in the first example
+            }}
+        >
+            {tree.treeName}
+        </a>
+    ))}
+</div>
+
+
             <hr/>
             <a
                 className="trash-icon"

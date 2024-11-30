@@ -319,12 +319,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 connectors: {
                     type: "step",
                 },
-                nodeMenu: {
-                    add: {
-                        text: "Add",
-                        onClick: () => openModal(), // Open Add Modal
-                    },
-                },
+    
                 menu: {
                     pdfPreview: {
                         text: "PDF Preview",
