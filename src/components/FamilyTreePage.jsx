@@ -250,21 +250,25 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             console.error('Error fetching family members:', error);
         }
     };
-
     const renderFamilyTree = () => {
         if (!treeContainerRef.current) {
             console.error("Tree container is not mounted yet.");
             return;
         }
     
+        // Dynamically generate nodes with yellow tag for all individuals
         const nodes = individuals.map((person) => ({
             id: person.memberId,
             name: person.name,
+            birthdate: person.birthdate || "Unknown",
+            deathdate: person.deathdate || "N/A",
+            additionalInfo: person.additionalInfo || "No additional info",
             pids: person.pid,
             mid: person.mid || null,
             fid: person.fid || null,
             gender: person.gender,
             img: person.img || "/profile-placeholder.png", // Use updated image
+            tags: ["yellow"], // Apply yellow tag to every node
             template:
                 person.gender === "male"
                     ? "john_male"
@@ -279,18 +283,33 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 padding: 50,
                 nodes: nodes,
                 editForm: {
-                    readOnly: true,
+                    buttons: {
+                        customEdit: {
+                            text: "Edit", // Label for the button
+                            icon: FamilyTree.icon.edit(24, 24, "#ffffff"), // Optional icon
+                        },
+                        share: null,
+                        pdf: null,
+                        edit: null,
+                        remove: null,
+                    },
                     generateElementsFromFields: false,
                     elements: [
-                        { type: 'textbox', label: 'Name', binding: 'name' },
-                        { type: 'textbox', label: 'Birthdate', binding: 'birthdate'},    
-                        { type: 'textbox', label: 'Deathdate', binding: 'deathdate'},    
-                        { type: 'textbox', label: 'Additional Information', binding: 'additionalInfo'}    
-                    ]
-
+                        { type: "textbox", label: "Name", binding: "name" },
+                        { type: "textbox", label: "Birthdate", binding: "birthdate" },
+                        { type: "textbox", label: "Deathdate", binding: "deathdate" },
+                        {
+                            type: "textbox",
+                            label: "Additional Information",
+                            binding: "additionalInfo",
+                        },
+                    ],
                 },
                 nodeBinding: {
                     field_0: "name",
+                    field_1: "birthdate",
+                    field_2: "deathdate",
+                    field_3: "additionalInfo",
                     img_0: "img",
                 },
                 toolbar: {
@@ -301,10 +320,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     type: "step",
                 },
                 nodeMenu: {
-                    edit: {
-                        text: "Edit",
-                        onClick: (nodeId) => handleEditNode(nodeId),
-                    },
                     add: {
                         text: "Add",
                         onClick: () => openModal(), // Open Add Modal
@@ -323,7 +338,13 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     },
                 },
                 mode: "light",
-                
+            });
+    
+            // Event handler for custom button clicks
+            familyTreeInstance.current.editUI.on("button-click", (sender, args) => {
+                if (args.name === "customEdit") {
+                    handleEditNode(args.nodeId); // Call your custom modal handler
+                }
             });
     
             console.log("FamilyTree rendered successfully.");
@@ -332,8 +353,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     };
     
-
-
+    
     const sendInvite = () => {
         const data = {
             treeId: treeId,
@@ -586,7 +606,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     
         if (selectedNode) {
             setSelectedMember(selectedNode); // Set the selected member for editing
-            setIsEditModalOpen(true); // Open the modal
+            setIsEditModalOpen(true); // Open the custom modal
         }
     };
     

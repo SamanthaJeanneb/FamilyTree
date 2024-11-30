@@ -201,7 +201,6 @@ svg.john .field_1 {
   text-align: center;
 }
 
-
 .add-individual {
   color: #A7A7A7;
   width: 13vw;
@@ -211,6 +210,27 @@ svg.john .field_1 {
   text-align: center;
   margin-bottom: 35vh; /* Center the container horizontally */
   flex-direction: column; /* Stack the button and text vertically */
+}
+.yellow>rect{
+  fill: #00BF4D !important;
+}
+.bft-edit-form.yellow .bft-img-button{
+    background-color: #00BF4D !important;
+}
+.bft-edit-form.yellow .bft-edit-form-header{
+  background-color: #d1d1d1;
+}
+
+.orange>rect{
+    fill: #00BF4D !important;
+}
+.bft-edit-form.orange .bft-edit-form-header,
+.bft-edit-form.orange .bft-img-button{
+    background-color: #00BF4D !important;
+}
+
+.bft-edit-form.orange .bft-img-button:hover{
+    background-color: #FFCA28 !important;
 }
 
 .add-individual-button {
