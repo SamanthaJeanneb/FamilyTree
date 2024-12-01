@@ -416,7 +416,7 @@ useEffect(() => {
                         ...(collaborationRole !== "Viewer" && {
                             viewAttachments: {
                                 text: "Attachments", // Button label
-                                icon: FamilyTree.icon.pdf(24, 24, "#ffffff"), // Optional icon
+                                icon: FamilyTree.icon.details(24, 24, "#ffffff"), // Optional icon
                             },
                             customEdit: {
                                 text: "Edit", // Label for the button
@@ -940,7 +940,7 @@ useEffect(() => {
             </div>
     
             {/* Floating Add Button */}
-            {individuals.length > 0 && !isModalOpen && collaborationRole === 'Owner' && (
+            {individuals.length > 0 && !isModalOpen && !isAttachmentsPersonModalOpen && collaborationRole === 'Owner' && (
     <button
         className="floating-add-button"
         onClick={openModal}

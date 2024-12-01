@@ -17,7 +17,7 @@
   border-radius: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
-  max-width: 800px;
+  max-width: 700px;
   width: 90%;
   max-height: 90vh; /* Ensures the modal doesn't exceed the viewport */
   overflow-y: auto; /* Adds a scrollbar if the content exceeds max-height */
@@ -35,17 +35,31 @@
   gap: 10px;
   justify-content: center;
 }
+/* Hide the scrollbar */
+.attachments-modal {
+  overflow-y: auto; /* Enable scrolling if necessary */
+  scrollbar-width: none; /* Firefox: Hides the scrollbar */
+}
+
+.attachments-modal::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Edge: Hides the scrollbar */
+}
+
+/* Ensure the modal content remains scrollable even when the scrollbar is hidden */
+body.modal-open {
+  overflow: hidden; /* Prevent body scroll when modal is open */
+}
 
 .attachments-modal .gallery-item {
   flex: 0 0 auto;
   width: auto;
   height: auto; /* Adjusts dynamically based on the image */
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .attachments-modal .gallery-image {
-  width: 15vw;
+  width: 12vw;
+  max-height: vh;
   height: auto; /* Maintain aspect ratio */
   object-fit: cover;
 }
@@ -93,7 +107,7 @@
 }
 
 .image-popup-content img {
-  width: 80vh;
+  width: 50vh;
   height: auto;
   border-radius: 10px;
 }
