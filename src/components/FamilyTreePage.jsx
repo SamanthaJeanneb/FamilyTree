@@ -222,7 +222,7 @@ useEffect(() => {
             console.log("Response from approveEdit:", response.data);
     
             if (response.data === "Suggested edit accepted and applied.") {
-                setMessage('Edit approved successfully.');
+                setMessage('Success: Edit approved.');
                 fetchFamilyMembers(); // Refresh the tree
             } else {
                 console.error('Unexpected response:', response.data);
@@ -392,10 +392,12 @@ useEffect(() => {
                 nodes: nodes,
                 editForm: {
                     buttons: {
-                        customEdit: {
-                            text: "Edit", // Label for the button
-                            icon: FamilyTree.icon.edit(24, 24, "#ffffff"), // Optional icon
-                        },
+                        ...(collaborationRole !== "Viewer" && {
+                            customEdit: {
+                                text: "Edit", // Label for the button
+                                icon: FamilyTree.icon.edit(24, 24, "#ffffff"), // Optional icon
+                            },
+                        }),
                         share: null,
                         pdf: null,
                         edit: null,
@@ -443,11 +445,13 @@ useEffect(() => {
             });
     
             // Event handler for custom button clicks
-            familyTreeInstance.current.editUI.on("button-click", (sender, args) => {
-                if (args.name === "customEdit") {
-                    handleEditNode(args.nodeId); // Call your custom modal handler
-                }
-            });
+            if (collaborationRole !== "Viewer") {
+                familyTreeInstance.current.editUI.on("button-click", (sender, args) => {
+                    if (args.name === "customEdit") {
+                        handleEditNode(args.nodeId); // Call your custom modal handler
+                    }
+                });
+            }
     
             console.log("FamilyTree rendered successfully.");
         } catch (error) {
