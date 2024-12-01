@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => {
+  const [message, setMessage] = useState('');
     const [typeOfFile, setTypeOfFile] = useState('');
     const [file, setFile] = useState(null);
 
@@ -11,7 +12,7 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
           setFile(selectedFile);
           console.log('Selected file:', selectedFile);
       } else {
-          alert('No file selected.');
+          setMessage('No file selected.');
       }
   };
   
@@ -21,15 +22,15 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
   
       // Validate inputs
       if (!typeOfFile) {
-          alert('Type of file is required.');
+          setMessage('Type of file is required.');
           return;
       }
       if (!file) {
-          alert('File is required.');
+          setMessage('File is required.');
           return;
       }
       if (!memberId) {
-          alert('Member ID is missing.');
+          setMessage('Member ID is missing.');
           return;
       }
   
@@ -55,11 +56,11 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
           });
   
           if (response.data === 'Attachment Saved Successfully') {
-              alert('Attachment uploaded successfully!');
+              setMessage('Attachment uploaded successfully!');
               onUpload(memberId, typeOfFile, file); // Refresh attachments
               onClose(); // Close the modal
           } else {
-              alert('Error: ' + response.data);
+              setMessage('Error: ' + response.data);
           }
       } catch (error) {
           console.error('Error uploading attachment:', error);
@@ -70,7 +71,7 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
               console.error('Response headers:', error.response.headers);
           }
   
-          alert('Failed to upload the file. Please check the input and try again.');
+          setMessage('Failed to upload the file. Please check the input and try again.');
       }
   };
   
@@ -87,6 +88,26 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
                 zIndex: 1050,
             }}
         >
+          {message && (
+  <div
+    className="custom-alert"
+    style={{
+      "--bg-color": message.includes("Success") ? "#eafaf1" : "#ffecec",
+      "--border-color": message.includes("Success") ? "#8bc34a" : "#f44336",
+      "--text-color": message.includes("Success") ? "#4caf50" : "#f44336",
+      "--icon-bg": message.includes("Success") ? "#d9f2e6" : "#ffe6e6",
+      "--icon-color": message.includes("Success") ? "#4caf50" : "#f44336",
+    }}
+  >
+    <div className="icon">
+      {message.includes("Success") ? "✓" : "✕"}
+    </div>
+    <span>{message}</span>
+    <button className="close-btn" onClick={() => setMessage("")}>
+      ✕
+    </button>
+  </div>
+)}
             <div
                 className="modal-content p-4"
                 style={{

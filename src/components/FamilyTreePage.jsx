@@ -14,6 +14,7 @@ import EditModal from './modals/EditModal.jsx';
 
 
 const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
+    const [message, setMessage] = useState(''); // State to hold the message
     const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
     const [selectedMemberId, setSelectedMemberId] = useState(null);
     const navigate = useNavigate();
@@ -107,18 +108,17 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     }, [treeId]);
       
     const uploadAttachment = async (memberId, typeOfFile, file) => {
-        console.log('uploadAttachment called with:', { memberId, typeOfFile, file });
         if (!memberId || !typeOfFile || !file) {
-            console.error('Missing required parameters:', { memberId, typeOfFile, file });
+            setMessage('Error: Missing required parameters.');
             return;
         }
-    
+
         const formData = new FormData();
         formData.append('memberId', memberId);
         formData.append('typeOfFile', typeOfFile);
         formData.append('fileData', file);
         formData.append('uploadedById', user.id);
-    
+
         try {
             const response = await axios.post('http://localhost:8080/demo/addAttachment', formData, {
                 headers: {
@@ -127,16 +127,16 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 },
                 withCredentials: true,
             });
-    
+
             if (response.data === 'Attachment Saved Successfully') {
-                alert('Attachment uploaded successfully!');
-                fetchFamilyMembers(); // Refresh individuals data
+                setMessage('Success: Attachment uploaded');
+                fetchFamilyMembers();
             } else {
-                alert('Error: ' + response.data);
+                setMessage(`Error: ${response.data}`);
             }
         } catch (error) {
             console.error('Error uploading attachment:', error);
-            alert('Failed to upload attachment.');
+            setMessage('Error uploading attachment.');
         }
     };
     
@@ -563,7 +563,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             );
     
             if (response.data === "Family Member Updated Successfully") {
-                alert("Family member updated successfully!");
+                setMessage("Success: Individual updated");
                 fetchFamilyMembers(); // Refresh the tree
                 closeEditModal(); // Close the modal
             } else {
@@ -586,11 +586,12 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     headers: { Authorization: `Bearer ${user.token}` },
                 }
             );
+            setMessage('Success : member deleted');
             fetchFamilyMembers(); // Refresh the tree after deletion
             closeEditModal(); // Close the modal
         } catch (error) {
             console.error("Error deleting member:", error);
-            alert("Failed to delete the member. Please try again.");
+            setMessage('Error deleting the member. Please try again.');
         }
     };
     const handleEditNode = (nodeId) => {
@@ -606,7 +607,29 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     return (
         <div className="tree-page-container">
             {/* Top Navigation Bar */}
-    
+     <div>
+                {/* Message Display */}
+                {message && (
+  <div
+    className="custom-alert"
+    style={{
+      "--bg-color": message.includes("Success") ? "#eafaf1" : "#ffecec",
+      "--border-color": message.includes("Success") ? "#8bc34a" : "#f44336",
+      "--text-color": message.includes("Success") ? "#4caf50" : "#f44336",
+      "--icon-bg": message.includes("Success") ? "#d9f2e6" : "#ffe6e6",
+      "--icon-color": message.includes("Success") ? "#4caf50" : "#f44336",
+    }}
+  >
+    <div className="icon">
+      {message.includes("Success") ? "✓" : "✕"}
+    </div>
+    <span>{message}</span>
+    <button className="close-btn" onClick={() => setMessage("")}>
+      ✕
+    </button>
+  </div>
+)}
+            </div>
             {/* Main Content */}
             <div
                 style={{
@@ -686,7 +709,12 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     onClose={closeEditModal}
     onSave={saveMemberChanges}
     onDelete={deleteMember}
-/>  
+    onAddAttachment={(memberId) => {
+        setSelectedMemberId(memberId);
+        setIsAttachmentModalOpen(true);
+    }}
+/>
+
                     {/* Welcome Message */}
                     {collaborationRole !== 'Viewer' && individuals.length === 0 && (
                         <div className="add-individual">

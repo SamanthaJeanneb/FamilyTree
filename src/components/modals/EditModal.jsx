@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaPaperclip } from "react-icons/fa";
 
-const EditModal = ({ isOpen, member, onClose, onSave, onDelete }) => {
+const EditModal = ({ isOpen, member, onClose, onSave, onDelete, onAddAttachment }) => {
     const [formData, setFormData] = useState({
         name: member?.name || "",
         birthdate: member?.birthdate || "",
@@ -116,7 +116,14 @@ const EditModal = ({ isOpen, member, onClose, onSave, onDelete }) => {
                     >
                         <FaTrash /> Delete
                     </button>
-                    <div>
+                    <div className="d-flex">
+                        <button
+                            type="button"
+                            className="btn btn-info mr-2"
+                            onClick={() => onAddAttachment(member.memberId)}
+                        >
+                            <FaPaperclip /> Add Attachment
+                        </button>
                         <button
                             type="button"
                             className="btn btn-secondary mr-2"
