@@ -11,6 +11,7 @@ import AttachmentModal from './modals/AttachmentModal.jsx';
 import AddPersonModal from './modals/AddPersonModal';
 import TreeActionBar from '../navigation/TreeActionBar.jsx';
 import EditModal from './modals/EditModal.jsx';
+import AttachmentsPersonModal from "./modals/AttachmentsPersonModal.jsx";
 
 
 const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
@@ -36,6 +37,8 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     const [selectedMember, setSelectedMember] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPanelVisible, setIsPanelVisible] = useState(false);
+    const [isAttachmentsPersonModalOpen, setIsAttachmentsPersonModalOpen] = useState(false);
+    const [attachments, setAttachments] = useState([]);
     const currentURL = `${window.location.protocol}//${window.location.host}${location.pathname}${location.search}${location.hash}`;
 
 
@@ -79,6 +82,24 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
       </clipPath>
     `;
     }, []);
+    const openAttachmentsPersonModal = async (memberId) => {
+        try {
+          const response = await axios.get("/demo/getAttachmentsForMember", {
+            params: { memberId },
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          setAttachments(response.data);
+          setIsAttachmentsPersonModalOpen(true);
+        } catch (error) {
+          console.error("Error fetching attachments:", error);
+        }
+      };
+    
+      const closeAttachmentsPersonModal = () => {
+        setAttachments([]);
+        setIsAttachmentsPersonModalOpen(false);
+      };
+    
     const openAttachmentModal = (memberId) => {
         setSelectedMemberId(memberId);
         setIsAttachmentModalOpen(true);
@@ -393,6 +414,10 @@ useEffect(() => {
                 editForm: {
                     buttons: {
                         ...(collaborationRole !== "Viewer" && {
+                            viewAttachments: {
+                                text: "Attachments", // Button label
+                                icon: FamilyTree.icon.pdf(24, 24, "#ffffff"), // Optional icon
+                            },
                             customEdit: {
                                 text: "Edit", // Label for the button
                                 icon: FamilyTree.icon.edit(24, 24, "#ffffff"), // Optional icon
@@ -406,8 +431,8 @@ useEffect(() => {
                     generateElementsFromFields: false,
                     elements: [
                         { type: "textbox", label: "Name", binding: "name" },
-                        { type: "textbox", label: "Birthdate", binding: "birthdate" },
-                        { type: "textbox", label: "Deathdate", binding: "deathdate" },
+                        { type: "date", label: "Birthdate", binding: "birthdate" },
+                        { type: "date", label: "Deathdate", binding: "deathdate" },
                         {
                             type: "textbox",
                             label: "Additional Information",
@@ -447,7 +472,9 @@ useEffect(() => {
             // Event handler for custom button clicks
             if (collaborationRole !== "Viewer") {
                 familyTreeInstance.current.editUI.on("button-click", (sender, args) => {
-                    if (args.name === "customEdit") {
+                    if (args.name === "viewAttachments") {
+                        openAttachmentsPersonModal(args.nodeId); // Open attachment modal for the clicked node
+                    } else if (args.name === "customEdit") {
                         handleEditNode(args.nodeId); // Call your custom modal handler
                     }
                 });
@@ -458,7 +485,6 @@ useEffect(() => {
             console.error("Error rendering FamilyTree:", error);
         }
     };
-    
     
     const sendInvite = () => {
         const data = {
@@ -637,72 +663,61 @@ useEffect(() => {
     };
     const saveMemberChanges = async (updatedMember) => {
         try {
-            if (collaborationRole === 'Editor') {
-                // Submit as a suggested edit
-                const payload = new URLSearchParams({
-                    memberId: updatedMember.memberId,
-                    suggestedById: user.id,
-                    fieldName: 'edit', // Custom field for multiple edits
-                    oldValue: JSON.stringify({
-                        name: selectedMember.name,
-                        birthdate: selectedMember.birthdate,
-                        deathdate: selectedMember.deathdate,
-                        gender: selectedMember.gender,
-                        additionalInfo: selectedMember.additionalInfo,
-                    }),
-                    newValue: JSON.stringify({
-                        name: updatedMember.name,
-                        birthdate: updatedMember.birthdate,
-                        deathdate: updatedMember.deathdate,
-                        gender: updatedMember.gender,
-                        additionalInfo: updatedMember.additionalInfo,
-                    }),
-                });
+            const payload = new URLSearchParams();
+            payload.append("memberId", updatedMember.memberId); // Required parameter
     
-                console.log('Submitting suggested edit:', payload.toString());
+            if (updatedMember.name) payload.append("name", updatedMember.name);
     
-                const response = await axios.post('/demo/suggestedEdits/create', payload, {
-                    headers: {
-                        Authorization: `Bearer ${user.token}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                });
-    
-                console.log('Suggested edit created successfully:', response.data);
-                setMessage('Success: Your suggested edit has been submitted for approval.');
-            } else if (collaborationRole === 'Owner') {
-                // Update the member directly if the user is the Owner
-                const payload = new URLSearchParams({
-                    memberId: updatedMember.memberId,
-                    name: updatedMember.name,
-                    birthdate: updatedMember.birthdate,
-                    deathdate: updatedMember.deathdate,
-                    gender: updatedMember.gender,
-                    additionalInfo: updatedMember.additionalInfo,
-                });
-    
-                console.log('Submitting direct edit:', payload.toString());
-    
-                const response = await axios.post(
-                    '/demo/editFamilyMember',
-                    payload,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${user.token}`,
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                    }
-                );
-    
-                console.log('Direct edit response:', response.data);
-                setMessage('Member updated successfully.');
-                fetchFamilyMembers(); // Refresh the tree
+            if (updatedMember.birthdate) {
+                const formattedBirthdate = new Date(updatedMember.birthdate)
+                    .toISOString()
+                    .split("T")[0]; // Format to yyyy-MM-dd
+                payload.append("birthdate", formattedBirthdate);
             }
     
-            closeEditModal();
+            if (updatedMember.gender) {
+                // Capitalize the first letter of gender
+                const gender = updatedMember.gender.charAt(0).toUpperCase() + updatedMember.gender.slice(1).toLowerCase();
+                payload.append("gender", gender);
+            }
+    
+            if (updatedMember.deathdate) {
+                const formattedDeathdate = new Date(updatedMember.deathdate)
+                    .toISOString()
+                    .split("T")[0];
+                payload.append("deathdate", formattedDeathdate);
+            }
+    
+            if (updatedMember.additionalInfo) payload.append("additionalInfo", updatedMember.additionalInfo);
+            if (updatedMember.pid) payload.append("pid", updatedMember.pid);
+            if (updatedMember.mid) payload.append("mid", updatedMember.mid);
+            if (updatedMember.fid) payload.append("fid", updatedMember.fid);
+    
+            console.log("Payload sent to backend:", payload.toString());
+    
+            const response = await axios.post(
+                "http://localhost:8080/demo/editFamilyMember",
+                payload,
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                }
+            );
+    
+            if (response.data === "Family Member Updated Successfully") {
+                setMessage("Success: Individual updated");
+                fetchFamilyMembers(); // Refresh the tree
+                closeEditModal(); // Close the modal
+            } else {
+                console.error("Unexpected response:", response.data);
+                alert("Failed to save changes. Please try again.");
+            }
         } catch (error) {
-            console.error('Error saving changes:', error);
-            setMessage('Failed to save changes.');
+            console.error("Error updating member:", error);
+            alert("Failed to save changes. Please try again.");
         }
     };
     
@@ -864,6 +879,7 @@ useEffect(() => {
     }}
 />
 
+
                     {/* Welcome Message */}
                     {collaborationRole !== 'Viewer' && individuals.length === 0 && (
                         <div className="add-individual">
@@ -899,6 +915,14 @@ useEffect(() => {
                     onUpload={(memberId, typeOfFile, file) => uploadAttachment(memberId, typeOfFile, file)}
                     />
             )}
+                        {isAttachmentsPersonModalOpen && (
+                <AttachmentsPersonModal
+                isOpen={isAttachmentsPersonModalOpen}
+                attachments={attachments}
+                onClose={closeAttachmentsPersonModal}
+              />
+            )}
+            
     
             {/* Add Person Modal */}
             {isModalOpen && (
