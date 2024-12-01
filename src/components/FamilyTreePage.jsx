@@ -784,7 +784,6 @@ useEffect(() => {
                     overflow: 'hidden',
                 }}
             ><div
-            className="wdswdwd"
 
         >
           <FamilyTreePageHeader 
