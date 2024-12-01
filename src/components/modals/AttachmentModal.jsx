@@ -47,8 +47,8 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const maxWidth = 800;
-                    const maxHeight = 800;
+                    const maxWidth = 1000;
+                    const maxHeight = 1000;
 
                     let width = img.width;
                     let height = img.height;

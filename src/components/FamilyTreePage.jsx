@@ -663,63 +663,113 @@ useEffect(() => {
     };
     const saveMemberChanges = async (updatedMember) => {
         try {
-            const payload = new URLSearchParams();
-            payload.append("memberId", updatedMember.memberId); // Required parameter
+            if (collaborationRole === "Editor") {
+                // Submit as a suggested edit
+                const payload = new URLSearchParams({
+                    memberId: updatedMember.memberId,
+                    suggestedById: user.id,
+                    fieldName: "edit", // Custom field for multiple edits
+                    oldValue: JSON.stringify({
+                        name: selectedMember.name,
+                        birthdate: selectedMember.birthdate,
+                        deathdate: selectedMember.deathdate,
+                        gender: selectedMember.gender,
+                        additionalInfo: selectedMember.additionalInfo,
+                    }),
+                    newValue: JSON.stringify({
+                        name: updatedMember.name,
+                        birthdate: updatedMember.birthdate,
+                        deathdate: updatedMember.deathdate,
+                        gender: updatedMember.gender,
+                        additionalInfo: updatedMember.additionalInfo,
+                    }),
+                });
     
-            if (updatedMember.name) payload.append("name", updatedMember.name);
-    
-            if (updatedMember.birthdate) {
-                const formattedBirthdate = new Date(updatedMember.birthdate)
-                    .toISOString()
-                    .split("T")[0]; // Format to yyyy-MM-dd
-                payload.append("birthdate", formattedBirthdate);
-            }
-    
-            if (updatedMember.gender) {
-                // Capitalize the first letter of gender
-                const gender = updatedMember.gender.charAt(0).toUpperCase() + updatedMember.gender.slice(1).toLowerCase();
-                payload.append("gender", gender);
-            }
-    
-            if (updatedMember.deathdate) {
-                const formattedDeathdate = new Date(updatedMember.deathdate)
-                    .toISOString()
-                    .split("T")[0];
-                payload.append("deathdate", formattedDeathdate);
-            }
-    
-            if (updatedMember.additionalInfo) payload.append("additionalInfo", updatedMember.additionalInfo);
-            if (updatedMember.pid) payload.append("pid", updatedMember.pid);
-            if (updatedMember.mid) payload.append("mid", updatedMember.mid);
-            if (updatedMember.fid) payload.append("fid", updatedMember.fid);
-    
-            console.log("Payload sent to backend:", payload.toString());
-    
-            const response = await axios.post(
-                "http://localhost:8080/demo/editFamilyMember",
-                payload,
-                {
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        Authorization: `Bearer ${user.token}`,
-                    },
-                }
-            );
-    
-            if (response.data === "Family Member Updated Successfully") {
-                setMessage("Success: Individual updated");
-                fetchFamilyMembers(); // Refresh the tree
+                console.log("Submitting suggested edit:", payload.toString());
                 closeEditModal(); // Close the modal
-            } else {
-                console.error("Unexpected response:", response.data);
-                alert("Failed to save changes. Please try again.");
+
+                const response = await axios.post(
+                    "/demo/suggestedEdits/create",
+                    payload,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                    }
+                );
+    
+                if (response.data === "Suggested Edit Created Successfully") {
+                    console.log("Suggested edit created successfully:", response.data);
+                    setMessage("Success: Your suggested edit has been submitted for approval.");
+                } else {
+                    console.error("Unexpected response:", response.data);
+                    alert("Failed to save suggested edit. Please try again.");
+                }
+            } else if (collaborationRole === "Owner") {
+                // Owner: Directly update the member
+                const payload = new URLSearchParams();
+                payload.append("memberId", updatedMember.memberId); // Required parameter
+    
+                if (updatedMember.name) payload.append("name", updatedMember.name);
+    
+                if (updatedMember.birthdate) {
+                    const formattedBirthdate = new Date(updatedMember.birthdate)
+                        .toISOString()
+                        .split("T")[0]; // Format to yyyy-MM-dd
+                    payload.append("birthdate", formattedBirthdate);
+                }
+    
+                if (updatedMember.gender) {
+                    // Capitalize the first letter of gender
+                    const gender =
+                        updatedMember.gender.charAt(0).toUpperCase() +
+                        updatedMember.gender.slice(1).toLowerCase();
+                    payload.append("gender", gender);
+                }
+    
+                if (updatedMember.deathdate) {
+                    const formattedDeathdate = new Date(updatedMember.deathdate)
+                        .toISOString()
+                        .split("T")[0];
+                    payload.append("deathdate", formattedDeathdate);
+                }
+    
+                if (updatedMember.additionalInfo) payload.append("additionalInfo", updatedMember.additionalInfo);
+                if (updatedMember.pid) payload.append("pid", updatedMember.pid);
+                if (updatedMember.mid) payload.append("mid", updatedMember.mid);
+                if (updatedMember.fid) payload.append("fid", updatedMember.fid);
+    
+                console.log("Submitting direct edit:", payload.toString());
+    
+                const response = await axios.post(
+                    "http://localhost:8080/demo/editFamilyMember",
+                    payload,
+                    {
+                        withCredentials: true,
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            Authorization: `Bearer ${user.token}`,
+                        },
+                    }
+                );
+    
+                if (response.data === "Family Member Updated Successfully") {
+                    console.log("Direct edit successful:", response.data);
+                    setMessage("Success: Individual updated");
+                    fetchFamilyMembers(); // Refresh the tree
+                    closeEditModal(); // Close the modal
+                } else {
+                    console.error("Unexpected response:", response.data);
+                    alert("Failed to save changes. Please try again.");
+                }
             }
         } catch (error) {
-            console.error("Error updating member:", error);
+            console.error("Error saving member changes:", error);
             alert("Failed to save changes. Please try again.");
         }
     };
+    
     
     const deleteMember = async (memberId) => {
         try {
@@ -783,17 +833,9 @@ useEffect(() => {
                     height: '100vh',
                     overflow: 'hidden',
                 }}
-            ><div
-
-        >
-          <FamilyTreePageHeader 
-    username={username} 
-    currentTreePath={`/tree/${treeName}`} 
-/>
-
-            </div>
-            <div>
-            <TreeActionBar
+                >
+                 <div>
+                    <TreeActionBar
   treeName={treeName}
   isPublic={isPublic}
   setPrivacy={setIsPublic} // Pass the state updater directly
@@ -807,7 +849,12 @@ useEffect(() => {
   inviteEmail={inviteEmail}
   setInviteEmail={setInviteEmail}
 />
-
+<div  >
+                <FamilyTreePageHeader 
+                username={username} 
+                currentTreePath={`/tree/${treeName}`} 
+                />
+                </div>
     {isInviteModalOpen && (
         <InviteCollaboratorModal
             sendInvite={sendInvite}

@@ -8,20 +8,18 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    background-color: rgba(0, 0, 0, 0.5); /* Slightly dim the background for focus */
+    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0.5);
+
 }
 
 .modal-content {
     background: white;
     padding: 20px;
-    border-radius: 20px;
+    border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    text-align: left;
-
-    /* Add width constraints */
-    width: 500px !important;/* Maximum width of the modal */
-    width: 90%; /* Adjust to viewport for responsiveness */
-    box-sizing: border-box; /* Ensure padding doesn't exceed max-width */
+    width: 400px;
+    text-align: center;
 }
 
 .modal-content h3 {
@@ -29,7 +27,7 @@
 }
 
 .modal-content input {
-    width: 100%; /* Make input fields take up full width */
+    width: 100%;
     margin: 10px 0;
     padding: 8px;
     border: 1px solid #5c5c5c;

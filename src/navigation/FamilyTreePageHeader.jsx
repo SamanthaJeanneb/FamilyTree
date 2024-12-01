@@ -19,7 +19,7 @@ const FamilyTreePageHeader = ({ username }) => {
         top: 0,
         left: 0,
         width: '100%',
-        zIndex: 1050,
+        zIndex: 1000,
         height: '70px',
         padding: '0 20px',
       }}
