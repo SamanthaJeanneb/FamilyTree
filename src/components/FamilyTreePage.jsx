@@ -236,6 +236,11 @@ useEffect(() => {
     
     
     const rejectEdit = async (editId) => {
+        if (!editId) {
+            setMessage("Error: Missing suggestion ID.");
+            return;
+        }
+    
         try {
             const payload = new URLSearchParams();
             payload.append("suggestionId", editId);
@@ -247,15 +252,15 @@ useEffect(() => {
                 },
             });
     
-            if (response.data === "Suggested edit declined successfully.") {
-                setMessage('Edit rejected successfully.');
-                fetchFamilyMembers(); // Refresh the tree
+            if (response.data === "Suggested edit declined and removed successfully.") {
+                setMessage('Success: Edit rejected.');
+                setSuggestedEdits((prev) =>
+                    prev.filter((edit) => edit.suggestionId !== editId)
+                ); // Remove the rejected edit
             } else {
-                console.error('Unexpected response:', response.data);
                 setMessage('Error: Unable to reject edit.');
             }
         } catch (error) {
-            console.error('Error rejecting edit:', error);
             setMessage('Error: Failed to reject edit.');
         }
     };
@@ -660,7 +665,7 @@ useEffect(() => {
                 });
     
                 console.log('Suggested edit created successfully:', response.data);
-                setMessage('Your suggested edit has been submitted for approval.');
+                setMessage('Success: Your suggested edit has been submitted for approval.');
             } else if (collaborationRole === 'Owner') {
                 // Update the member directly if the user is the Owner
                 const payload = new URLSearchParams({
