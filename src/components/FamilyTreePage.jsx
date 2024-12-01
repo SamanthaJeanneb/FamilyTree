@@ -14,6 +14,7 @@ import EditModal from './modals/EditModal.jsx';
 
 
 const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
+    const [suggestedEdits, setSuggestedEdits] = useState([]);
     const [message, setMessage] = useState(''); // State to hold the message
     const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
     const [selectedMemberId, setSelectedMemberId] = useState(null);
@@ -87,22 +88,28 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         setSelectedMemberId(null);
         setIsAttachmentModalOpen(false);
     };
-    const fetchCollaborationRole = async () => {
-        try {
-            const response = await axios.get('/getCollaborationByUser', {
-                params: { userId: user.id },
-                headers: { Authorization: `Bearer ${user.token}` },
-            });
-            const collaborations = response.data;
-            const treeCollaboration = collaborations.find(c => c.familyTree.id === treeId);
-            if (treeCollaboration) {
-                setCollaborationRole(treeCollaboration.role);
-                setViewOnly(treeCollaboration.role === 'Viewer');
-            }
-        } catch (error) {
-            console.error('Error fetching collaboration role:', error);
+ const fetchCollaborationRole = async () => {
+    try {
+        const response = await axios.get('/demo/getCollaborationByUser', {
+            params: { userId: userId },
+            headers: { Authorization: `Bearer ${user.token}` },
+        });
+
+        console.log('Response from backend:', response.data);
+        const collaborations = Array.isArray(response.data) ? response.data : response.data.collaborations || [];
+
+        const treeCollaboration = collaborations.find(c => c.familyTree?.id === treeId);
+        if (treeCollaboration) {
+            setCollaborationRole(treeCollaboration.role);
+            setViewOnly(treeCollaboration.role === 'Viewer');
+        } else {
+            console.warn('No collaboration found for this tree.');
         }
-    };
+    } catch (error) {
+        console.error('Error fetching collaboration role:', error);
+    }
+};
+
     useEffect(() => {
         fetchCollaborationRole();
     }, [treeId]);
@@ -180,18 +187,100 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     }, [individuals, isAttachmentModalOpen]);
 
-
+// Add this useEffect
+useEffect(() => {
+    fetchFamilyMembers();
+    if (collaborationRole === 'Owner') {
+        fetchSuggestedEdits();
+    }
+}, [treeId, collaborationRole]);
     useEffect(() => {
         if (treeId && userId) {
             fetchFamilyMembers();
         }
     }, [treeId, userId]); // Re-fetch when `treeId` or `userId` changes
-
-
+    const approveEdit = async (editId) => {
+        if (!editId) {
+            console.error("approveEdit called with undefined editId");
+            setMessage("Error: Missing suggestion ID.");
+            return;
+        }
+    
+        try {
+            const payload = new URLSearchParams();
+            payload.append("suggestionId", editId);
+    
+            console.log("Payload for approveEdit:", payload.toString());
+    
+            const response = await axios.post('/demo/suggestedEdits/accept', payload, {
+                headers: {
+                    Authorization: `Bearer ${user.token}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
+    
+            console.log("Response from approveEdit:", response.data);
+    
+            if (response.data === "Suggested edit accepted and applied.") {
+                setMessage('Edit approved successfully.');
+                fetchFamilyMembers(); // Refresh the tree
+            } else {
+                console.error('Unexpected response:', response.data);
+                setMessage('Error: Unable to approve edit.');
+            }
+        } catch (error) {
+            console.error('Error approving edit:', error);
+            setMessage('Error: Failed to approve edit.');
+        }
+    };
+    
+    
+    const rejectEdit = async (editId) => {
+        try {
+            const payload = new URLSearchParams();
+            payload.append("suggestionId", editId);
+    
+            const response = await axios.post('/demo/suggestedEdits/decline', payload, {
+                headers: {
+                    Authorization: `Bearer ${user.token}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
+    
+            if (response.data === "Suggested edit declined successfully.") {
+                setMessage('Edit rejected successfully.');
+                fetchFamilyMembers(); // Refresh the tree
+            } else {
+                console.error('Unexpected response:', response.data);
+                setMessage('Error: Unable to reject edit.');
+            }
+        } catch (error) {
+            console.error('Error rejecting edit:', error);
+            setMessage('Error: Failed to reject edit.');
+        }
+    };
+    
+    const fetchSuggestedEdits = async () => {
+        try {
+            const response = await axios.get('/demo/suggestedEdits/review', {
+                params: { treeId },
+                headers: { Authorization: `Bearer ${user.token}` },
+            });
+    
+            console.log("Fetched Suggested Edits:", response.data);
+    
+            setSuggestedEdits(response.data);
+        } catch (error) {
+            console.error('Error fetching suggested edits:', error);
+        }
+    };
+    
+    
     const fetchFamilyMembers = async () => {
         if (!treeId) return;
     
         try {
+            // Fetch main tree members
             const membersResponse = await axios.get('/demo/getFamilyMembersInTree', {
                 params: { treeId },
                 headers: { Authorization: `Bearer ${user.token}` },
@@ -242,7 +331,23 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 });
             });
     
+            // Set the main tree members
             setIndividuals(updatedMembers);
+    
+            // If the user is an Owner, fetch suggested edits
+            if (collaborationRole === 'Owner') {
+                try {
+                    const editsResponse = await axios.get('/demo/suggestedEdits/review', {
+                        params: { treeId },
+                        headers: { Authorization: `Bearer ${user.token}` },
+                    });
+    
+                    const suggestedEdits = editsResponse.data;
+                    setSuggestedEdits(suggestedEdits); // Store suggested edits in state
+                } catch (error) {
+                    console.error('Error fetching suggested edits:', error);
+                }
+            }
         } catch (error) {
             console.error('Error fetching family members:', error);
         }
@@ -412,93 +517,98 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         setInviteEmail('');
         setInviteMessage('');
     }
-
-
-    const handleFormSubmit = (e) => {
-        console.log('Current collaborationRole:', collaborationRole);
-
-        if (collaborationRole === 'Editor') {
-            alert('Your edit has been submitted for approval.');
-            return;
-        }
-        if (collaborationRole === 'Viewer') {
-            alert('You do not have permission to add individuals.');
-            return;
-        }
+    const handleFormSubmit = async (e) => {
         e.preventDefault();
-
+    
         const formattedBirthdate = newPerson.birthdate
             ? new Date(newPerson.birthdate).toISOString().split('T')[0]
             : '';
         const formattedDeathdate = newPerson.deathdate
             ? new Date(newPerson.deathdate).toISOString().split('T')[0]
             : '';
-
-        const formData = new URLSearchParams();
-        formData.append('name', newPerson.name);
-        formData.append('birthdate', formattedBirthdate);
-        formData.append('gender', newPerson.sex);
-        formData.append('userId', userId);
-        formData.append('treeId', treeId);
-        formData.append('addedById', userId);
-        if (formattedDeathdate) formData.append('deathdate', formattedDeathdate);
-        if (newPerson.additionalInfo) formData.append('additionalInfo', newPerson.additionalInfo);
-        formData.append('isPrivate', newPerson.isPrivate.toString());
-        if (newRelationship.fid) formData.append('fid', newRelationship.fid);
-        if (newRelationship.mid) formData.append('mid', newRelationship.mid);
-        if (newRelationship.pid) formData.append('pid', newRelationship.pid);
-        console.log('Submitting form with data:', {
-            name: newPerson.name,
-            birthdate: formattedBirthdate,
-            gender: newPerson.sex,
-            userId,
-            treeId,
-            addedById: userId,
-            deathdate: formattedDeathdate,
-            additionalInfo: newPerson.additionalInfo,
-            isPrivate: newPerson.isPrivate,
-            fid: newRelationship.fid,
-            mid: newRelationship.mid,
-            pid: newRelationship.pid,
-        });
-        axios
-            .post('/demo/addFamilyMember', formData, {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-            })
-            .then((response) => {
-                const memberId = response.data.memberId; // Assume backend returns the `memberId` of the newly added member
-                if (!memberId) {
-                    throw new Error('Member ID not returned by backend');
-                }
-
-                // Fetch family members to update the tree
-                fetchFamilyMembers();
-
-                // Reset form fields
-                setNewPerson({
-                    name: '',
-                    sex: 'Male',
-                    birthdate: '',
-                    deathdate: '',
-                    additionalInfo: '',
-                    isPrivate: false,
+    
+        console.log('Form Submission Initiated');
+        console.log('Collaboration Role:', collaborationRole);
+        console.log('New Person:', newPerson);
+        console.log('Formatted Birthdate:', formattedBirthdate);
+        console.log('Formatted Deathdate:', formattedDeathdate);
+    
+        try {
+            if (collaborationRole === 'Owner') {
+                console.log('Owner Role: Adding member directly to the main tree.');
+    
+                const formData = new URLSearchParams();
+                formData.append('name', newPerson.name);
+                formData.append('birthdate', formattedBirthdate);
+                formData.append('gender', newPerson.sex);
+                formData.append('userId', userId);
+                formData.append('treeId', treeId);
+                formData.append('addedById', userId);
+                if (formattedDeathdate) formData.append('deathdate', formattedDeathdate);
+                if (newPerson.additionalInfo) formData.append('additionalInfo', newPerson.additionalInfo);
+                formData.append('isPrivate', newPerson.isPrivate.toString());
+                if (newRelationship.fid) formData.append('fid', newRelationship.fid);
+                if (newRelationship.mid) formData.append('mid', newRelationship.mid);
+                if (newRelationship.pid) formData.append('pid', newRelationship.pid);
+    
+                console.log('Form Data for Main Tree:', formData.toString());
+    
+                await axios.post('/demo/addFamilyMember', formData, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
                 });
-                setNewRelationship({ fid: '', mid: '', pid: '' });
-
-                // Close the add person modal
-                closeModal();
-
-                // Open the attachment modal for the newly added member
-                setSelectedMemberId(memberId);
-                setIsAttachmentModalOpen(true);
-            })
-            .catch((error) => {
-                console.error('Error adding family member:', error);
+    
+                setMessage('Success: Member added to the main tree.');
+                fetchFamilyMembers(); // Refresh the tree
+            } else if (collaborationRole === 'Editor') {
+                console.log('Editor Role: Submitting suggested edit.');
+    
+                // Generate the suggested edits payload
+                const payload = new URLSearchParams({
+                    memberId: '', // Omit if creating a new member
+                    suggestedById: user.id,
+                    fieldName: 'name',
+                    oldValue: '', // Leave empty for new entries
+                    newValue: newPerson.name, // Example of name edit
+                });
+    
+                console.log('Payload for Suggested Edit:', payload.toString());
+    
+                const response = await axios.post('/demo/suggestedEdits/create', payload, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                });
+    
+                console.log('Suggested Edit Response:', response.data);
+    
+                setMessage('Your edit has been submitted for approval.');
+            } else {
+                console.warn('Unauthorized Role: User does not have permission to add members.');
+                setMessage('You do not have permission to add members.');
+            }
+    
+            // Reset form and close modal
+            setNewPerson({
+                name: '',
+                sex: 'Male',
+                birthdate: '',
+                deathdate: '',
+                additionalInfo: '',
+                isPrivate: false,
             });
+            setNewRelationship({ fid: '', mid: '', pid: '' });
+            closeModal();
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            setMessage('Error: Unable to submit your changes.');
+        }
     };
+    
+    
     useEffect(() => {
         if (!treeId) {
             console.error('Tree ID is missing. Redirecting to dashboard.');
@@ -518,64 +628,74 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     };
     const saveMemberChanges = async (updatedMember) => {
         try {
-            const payload = new URLSearchParams();
-            payload.append("memberId", updatedMember.memberId); // Required parameter
+            if (collaborationRole === 'Editor') {
+                // Submit as a suggested edit
+                const payload = new URLSearchParams({
+                    memberId: updatedMember.memberId,
+                    suggestedById: user.id,
+                    fieldName: 'edit', // Custom field for multiple edits
+                    oldValue: JSON.stringify({
+                        name: selectedMember.name,
+                        birthdate: selectedMember.birthdate,
+                        deathdate: selectedMember.deathdate,
+                        gender: selectedMember.gender,
+                        additionalInfo: selectedMember.additionalInfo,
+                    }),
+                    newValue: JSON.stringify({
+                        name: updatedMember.name,
+                        birthdate: updatedMember.birthdate,
+                        deathdate: updatedMember.deathdate,
+                        gender: updatedMember.gender,
+                        additionalInfo: updatedMember.additionalInfo,
+                    }),
+                });
     
-            if (updatedMember.name) payload.append("name", updatedMember.name);
+                console.log('Submitting suggested edit:', payload.toString());
     
-            if (updatedMember.birthdate) {
-                const formattedBirthdate = new Date(updatedMember.birthdate)
-                    .toISOString()
-                    .split("T")[0]; // Format to yyyy-MM-dd
-                payload.append("birthdate", formattedBirthdate);
-            }
-    
-            if (updatedMember.gender) {
-                // Capitalize the first letter of gender
-                const gender = updatedMember.gender.charAt(0).toUpperCase() + updatedMember.gender.slice(1).toLowerCase();
-                payload.append("gender", gender);
-            }
-    
-            if (updatedMember.deathdate) {
-                const formattedDeathdate = new Date(updatedMember.deathdate)
-                    .toISOString()
-                    .split("T")[0];
-                payload.append("deathdate", formattedDeathdate);
-            }
-    
-            if (updatedMember.additionalInfo) payload.append("additionalInfo", updatedMember.additionalInfo);
-            if (updatedMember.pid) payload.append("pid", updatedMember.pid);
-            if (updatedMember.mid) payload.append("mid", updatedMember.mid);
-            if (updatedMember.fid) payload.append("fid", updatedMember.fid);
-    
-            console.log("Payload sent to backend:", payload.toString());
-    
-            const response = await axios.post(
-                "http://localhost:8080/demo/editFamilyMember",
-                payload,
-                {
-                    withCredentials: true,
+                const response = await axios.post('/demo/suggestedEdits/create', payload, {
                     headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
                         Authorization: `Bearer ${user.token}`,
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                }
-            );
+                });
     
-            if (response.data === "Family Member Updated Successfully") {
-                setMessage("Success: Individual updated");
+                console.log('Suggested edit created successfully:', response.data);
+                setMessage('Your suggested edit has been submitted for approval.');
+            } else if (collaborationRole === 'Owner') {
+                // Update the member directly if the user is the Owner
+                const payload = new URLSearchParams({
+                    memberId: updatedMember.memberId,
+                    name: updatedMember.name,
+                    birthdate: updatedMember.birthdate,
+                    deathdate: updatedMember.deathdate,
+                    gender: updatedMember.gender,
+                    additionalInfo: updatedMember.additionalInfo,
+                });
+    
+                console.log('Submitting direct edit:', payload.toString());
+    
+                const response = await axios.post(
+                    '/demo/editFamilyMember',
+                    payload,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                    }
+                );
+    
+                console.log('Direct edit response:', response.data);
+                setMessage('Member updated successfully.');
                 fetchFamilyMembers(); // Refresh the tree
-                closeEditModal(); // Close the modal
-            } else {
-                console.error("Unexpected response:", response.data);
-                alert("Failed to save changes. Please try again.");
             }
+    
+            closeEditModal();
         } catch (error) {
-            console.error("Error updating member:", error);
-            alert("Failed to save changes. Please try again.");
+            console.error('Error saving changes:', error);
+            setMessage('Failed to save changes.');
         }
     };
-    
     
     const deleteMember = async (memberId) => {
         try {
@@ -702,6 +822,26 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     className="tree-container"
     style={{ width: "100%", height: "100%" }}
 ></div>
+{collaborationRole === 'Owner' && suggestedEdits.length > 0 && (
+    <div className="suggested-edits">
+        <h3>Suggested Edits</h3>
+        <ul>
+        {suggestedEdits.map((edit) => (
+    <li key={edit.suggestionId}>
+        <p>
+            <strong>Suggested By:</strong> {edit.suggestedBy.username}<br />
+            <strong>Field:</strong> {edit.fieldName}<br />
+            <strong>Old Value:</strong> {edit.oldValue || 'N/A'}<br />
+            <strong>New Value:</strong> {edit.newValue}
+        </p>
+        <button onClick={() => approveEdit(edit.suggestionId)}>Approve</button>
+        <button onClick={() => rejectEdit(edit.suggestionId)}>Reject</button>
+    </li>
+))}
+
+        </ul>
+    </div>
+)}
 
 <EditModal
     isOpen={isEditModalOpen}
@@ -729,16 +869,15 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             </div>
     
             {/* Floating Add Button */}
-            {individuals.length > 0 && !isModalOpen && !viewOnly && collaborationRole !== 'Viewer' && (
-                
-                <button
-                    className="floating-add-button"
-                    onClick={openModal}
-                    title="Add Individual"
-                >
-                    +
-                </button>
-            )}
+            {individuals.length > 0 && !isModalOpen && collaborationRole === 'Owner' && (
+    <button
+        className="floating-add-button"
+        onClick={openModal}
+        title="Add Individual"
+    >
+        +
+    </button>
+)}
     
     
             {/* Attachment Modal */}

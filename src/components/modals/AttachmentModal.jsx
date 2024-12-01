@@ -1,17 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => {
     const [message, setMessage] = useState('');
     const [typeOfFile, setTypeOfFile] = useState('');
     const [file, setFile] = useState(null);
+    const [attachments, setAttachments] = useState([]);
+
+    // Fetch attachments when the modal opens
+    useEffect(() => {
+        const fetchAttachments = async () => {
+            try {
+                const response = await axios.get('/demo/getAttachmentsForMember', {
+                    params: { memberId },
+                    headers: {
+                      'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${userToken}`,
+                    },
+                });
+                setAttachments(response.data);
+            } catch (error) {
+                console.error('Error fetching attachments:', error);
+                setMessage('Error fetching attachments. Please try again later.');
+            }
+        };
+
+        if (memberId) {
+            fetchAttachments();
+        }
+    }, [memberId, userToken]);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
             setFile(selectedFile);
             setMessage(''); // Clear any previous error message
-            console.log('Selected file:', selectedFile);
         } else {
             setMessage('Error: No file selected.');
         }
@@ -70,92 +93,89 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
         });
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleUpload = async (e) => {
+      e.preventDefault();
+  
+      if (!typeOfFile || !file) {
+          setMessage('Error: Both type of file and file are required.');
+          return;
+      }
+  
+      try {
+          setMessage('Uploading file...');
+          const compressedFile = await compressImage(file);
+  
+          const formData = new FormData();
+          formData.append('memberId', memberId);
+          formData.append('typeOfFile', typeOfFile);
+          formData.append('fileData', compressedFile);
+          formData.append('uploadedById', userId);
+  
+          const response = await axios.post('/demo/addAttachment', formData, {
+              headers: {
+                  'Content-Type': 'multipart/form-data',
+                  Authorization: `Bearer ${userToken}`,
+              },
+          });
+  
+          if (response.data.status === 'Success') {
+              setMessage('Success: Attachment uploaded');
+              // Reset the form fields
+              setFile(null);
+              setTypeOfFile('');
+              // Close the modal after successful upload
+              onClose();
+          } else {
+              setMessage(`Error: ${response.data.message}`);
+          }
+      } catch (error) {
+          console.error('Error uploading attachment:', error);
+          setMessage('Error: Failed to upload the file.');
+      }
+  };
+  
+  
+  const handleDelete = async (mediaId) => {
+    console.log('Deleting attachment with mediaId:', mediaId);
 
-        if (!typeOfFile) {
-            setMessage('Error: Type of file is required.');
-            return;
+    try {
+        const response = await axios.post('/demo/deleteAttachment', { mediaId }, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+                Authorization: `Bearer ${userToken}`,
+            },
+        });
+
+        if (response.data === 'Attachment Deleted Successfully') {
+            setAttachments((prev) => prev.filter((attachment) => attachment.mediaId !== mediaId));
+            setMessage('Attachment deleted successfully.');
+        } else {
+            setMessage(`Error: ${response.data}`);
         }
-        if (!file) {
-            setMessage('Error: File is required.');
-            return;
-        }
-        if (!memberId) {
-            setMessage('Error: Member ID is missing.');
-            return;
-        }
+    } catch (error) {
+        console.error('Error deleting attachment:', error);
+        setMessage('Error: Failed to delete attachment.');
+    }
+};
 
-        try {
-            setMessage('Compressing image...');
-            const compressedFile = await compressImage(file);
-
-            const formData = new FormData();
-            formData.append('memberId', memberId);
-            formData.append('typeOfFile', typeOfFile);
-            formData.append('fileData', compressedFile);
-            formData.append('uploadedById', userId);
-
-            const response = await axios.post('http://localhost:8080/demo/addAttachment', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${userToken}`,
-                },
-                withCredentials: true,
-            });
-
-            if (response.data === 'Attachment Saved Successfully') {
-                setMessage('Success: Attachment uploaded successfully!');
-                onUpload(memberId, typeOfFile, file);
-                setTimeout(onClose, 2000); // Close modal after success
-            } else {
-                setMessage(`Error: ${response.data}`);
-            }
-        } catch (error) {
-            console.error('Error uploading attachment:', error);
-            setMessage('Error: Failed to upload the file. Please check the input and try again.');
-        }
-    };
 
     return (
-        <div
-            className="d-flex justify-content-center align-items-center"
-            style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                zIndex: 1050,
-            }}
-        >
-            {message && (
-                <div
-                    className="custom-alert"
-                    style={{
-                        backgroundColor: message.includes('Error') ? '#ffecec' : '#eafaf1',
-                        border: `1px solid ${message.includes('Error') ? '#f44336' : '#8bc34a'}`,
-                        color: message.includes('Error') ? '#f44336' : '#4caf50',
-                        padding: '10px',
-                        marginBottom: '15px',
-                        borderRadius: '5px',
-                    }}
-                >
-                    {message}
+        <div className="d-flex justify-content-center align-items-center" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1050 }}>
+            <div className="modal-content p-4" style={{ width: '600px', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}>
+                <h2 className="text-center">Attachments</h2>
+                {message && <div className={`alert ${message.includes('Error') ? 'alert-danger' : 'alert-success'}`}>{message}</div>}
+                <div className="gallery" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+                    {attachments.map((attachment) => (
+                        <div key={attachment.mediaId} className="attachment-item" style={{ textAlign: 'center' }}>
+                            <img src={attachment.fileData} alt={attachment.typeOfFile} style={{ width: '100px', height: '100px', objectFit: 'cover' }} />
+                            <p>{attachment.typeOfFile}</p>
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(attachment.mediaId)}>
+                                Delete
+                            </button>
+                        </div>
+                    ))}
                 </div>
-            )}
-            <div
-                className="modal-content p-4"
-                style={{
-                    width: '400px',
-                    backgroundColor: 'white',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
-                }}
-            >
-                <h2 className="text-center">Upload Attachment</h2>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleUpload}>
                     <div className="form-group">
                         <label htmlFor="typeOfFile">Type of File</label>
                         <input
@@ -181,7 +201,7 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
                     </div>
                     <div className="form-buttons d-flex justify-content-between">
                         <button type="button" className="btn btn-secondary" onClick={onClose}>
-                            Cancel
+                            Close
                         </button>
                         <button type="submit" className="btn btn-primary">
                             Upload

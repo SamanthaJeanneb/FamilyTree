@@ -125,16 +125,18 @@ console.log("Given URL: "+url);
 
   const fetchTrees = async () => {
     try {
-      const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
-      if (!response.ok) throw new Error(`Error: ${response.status}`);
+        const response = await fetch(`/demo/getUserFamilyTrees?userId=${userId}`);
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
 
-      const data = await response.json();
-      setTrees(data);
+        const data = await response.json();
+        const updatedTrees = attachTreeImages(data); // Attach images to trees
+        setTrees(updatedTrees);
     } catch (error) {
-      console.error("Error fetching trees:", error);
-      setMessage(`Error fetching trees: ${error.message}`);
+        console.error("Error fetching trees:", error);
+        setMessage(`Error fetching trees: ${error.message}`);
     }
-  }
+};
+
 
   {/*Fetch Notifications*/}
   const fetchNotifications = () => {
@@ -230,6 +232,15 @@ const openTree = (treeId, treeName, userId) => {
       setMessage(`Error deleting tree: ${error.message}`);
     }
   };
+  const attachTreeImages = (trees) => {
+    return trees.map(tree => {
+        const storedImage = localStorage.getItem(`treeImage_${tree.id}`);
+        return {
+            ...tree,
+            image: storedImage || 'placeholder.png', // Use stored image or fallback
+        };
+    });
+};
 
   const allowDrop = (e) => e.preventDefault();
 
@@ -421,21 +432,22 @@ const openTree = (treeId, treeName, userId) => {
                     </div>
 
                     {/* Existing Tree Cards */}
-                    {trees.map((tree) => (
-                        <div
-                            className="col-md-3 mb-4"
-                            key={tree.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, tree.id)}
-                        >
-                          <div className="card tree-card" onClick={() => openTree(tree.id, tree.treeName, user.id)}>
-                            <img src="placeholder.png" className="card-img-top tree-image" alt={tree.treeName} />
-                            <div className="card-body text-center">
-                              <h5 className="card-title tree-title">{tree.treeName}</h5>
-                            </div>
-                          </div>
-                        </div>
-                    ))}
+                    {trees.map(tree => (
+    <div
+        className="col-md-3 mb-4"
+        key={tree.id}
+        draggable
+        onDragStart={(e) => handleDragStart(e, tree.id)}
+    >
+        <div className="card tree-card" onClick={() => openTree(tree.id, tree.treeName, user.id)}>
+            <img src={tree.image} className="card-img-top tree-image" alt={tree.treeName} />
+            <div className="card-body text-center">
+                <h5 className="card-title tree-title">{tree.treeName}</h5>
+            </div>
+        </div>
+    </div>
+))}
+
                   </div>
                 </div>
 
