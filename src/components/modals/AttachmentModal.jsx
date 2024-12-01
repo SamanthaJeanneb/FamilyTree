@@ -2,79 +2,121 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => {
-  const [message, setMessage] = useState('');
+    const [message, setMessage] = useState('');
     const [typeOfFile, setTypeOfFile] = useState('');
     const [file, setFile] = useState(null);
 
     const handleFileChange = (e) => {
-      const selectedFile = e.target.files[0];
-      if (selectedFile) {
-          setFile(selectedFile);
-          console.log('Selected file:', selectedFile);
-      } else {
-          setMessage('No file selected.');
-      }
-  };
-  
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            setFile(selectedFile);
+            setMessage(''); // Clear any previous error message
+            console.log('Selected file:', selectedFile);
+        } else {
+            setMessage('Error: No file selected.');
+        }
+    };
+
+    const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const maxWidth = 800;
+                    const maxHeight = 800;
+
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Maintain aspect ratio
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convert canvas to a Blob
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Image compression failed.'));
+                            }
+                        },
+                        'image/jpeg',
+                        0.7 // Compression quality
+                    );
+                };
+                img.onerror = reject;
+                img.src = reader.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
 
     const handleSubmit = async (e) => {
-      e.preventDefault();
-  
-      // Validate inputs
-      if (!typeOfFile) {
-          setMessage('Type of file is required.');
-          return;
-      }
-      if (!file) {
-          setMessage('File is required.');
-          return;
-      }
-      if (!memberId) {
-          setMessage('Member ID is missing.');
-          return;
-      }
-  
-      // Prepare form data
-      const formData = new FormData();
-      formData.append('memberId', memberId);
-      formData.append('typeOfFile', typeOfFile);
-      formData.append('fileData', file);
-      formData.append('uploadedById', userId);
-  
-      // Debug form data
-      for (let [key, value] of formData.entries()) {
-          console.log(`${key}:`, value);
-      }
-  
-      try {
-          const response = await axios.post('http://localhost:8080/demo/addAttachment', formData, {
-              headers: {
-                  'Content-Type': 'multipart/form-data',
-                  Authorization: `Bearer ${userToken}`, // Ensure token is passed correctly
-              },
-              withCredentials: true, // Ensure cookies are sent if needed
-          });
-  
-          if (response.data === 'Attachment Saved Successfully') {
-              setMessage('Attachment uploaded successfully!');
-              onUpload(memberId, typeOfFile, file); // Refresh attachments
-              onClose(); // Close the modal
-          } else {
-              setMessage('Error: ' + response.data);
-          }
-      } catch (error) {
-          console.error('Error uploading attachment:', error);
-  
-          if (error.response) {
-              console.error('Response data:', error.response.data);
-              console.error('Response status:', error.response.status);
-              console.error('Response headers:', error.response.headers);
-          }
-  
-          setMessage('Failed to upload the file. Please check the input and try again.');
-      }
-  };
-  
+        e.preventDefault();
+
+        if (!typeOfFile) {
+            setMessage('Error: Type of file is required.');
+            return;
+        }
+        if (!file) {
+            setMessage('Error: File is required.');
+            return;
+        }
+        if (!memberId) {
+            setMessage('Error: Member ID is missing.');
+            return;
+        }
+
+        try {
+            setMessage('Compressing image...');
+            const compressedFile = await compressImage(file);
+
+            const formData = new FormData();
+            formData.append('memberId', memberId);
+            formData.append('typeOfFile', typeOfFile);
+            formData.append('fileData', compressedFile);
+            formData.append('uploadedById', userId);
+
+            const response = await axios.post('http://localhost:8080/demo/addAttachment', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${userToken}`,
+                },
+                withCredentials: true,
+            });
+
+            if (response.data === 'Attachment Saved Successfully') {
+                setMessage('Success: Attachment uploaded successfully!');
+                onUpload(memberId, typeOfFile, file);
+                setTimeout(onClose, 2000); // Close modal after success
+            } else {
+                setMessage(`Error: ${response.data}`);
+            }
+        } catch (error) {
+            console.error('Error uploading attachment:', error);
+            setMessage('Error: Failed to upload the file. Please check the input and try again.');
+        }
+    };
+
     return (
         <div
             className="d-flex justify-content-center align-items-center"
@@ -88,26 +130,21 @@ const AttachmentModal = ({ memberId, onClose, onUpload, userId, userToken }) => 
                 zIndex: 1050,
             }}
         >
-          {message && (
-  <div
-    className="custom-alert"
-    style={{
-      "--bg-color": message.includes("Success") ? "#eafaf1" : "#ffecec",
-      "--border-color": message.includes("Success") ? "#8bc34a" : "#f44336",
-      "--text-color": message.includes("Success") ? "#4caf50" : "#f44336",
-      "--icon-bg": message.includes("Success") ? "#d9f2e6" : "#ffe6e6",
-      "--icon-color": message.includes("Success") ? "#4caf50" : "#f44336",
-    }}
-  >
-    <div className="icon">
-      {message.includes("Success") ? "✓" : "✕"}
-    </div>
-    <span>{message}</span>
-    <button className="close-btn" onClick={() => setMessage("")}>
-      ✕
-    </button>
-  </div>
-)}
+            {message && (
+                <div
+                    className="custom-alert"
+                    style={{
+                        backgroundColor: message.includes('Error') ? '#ffecec' : '#eafaf1',
+                        border: `1px solid ${message.includes('Error') ? '#f44336' : '#8bc34a'}`,
+                        color: message.includes('Error') ? '#f44336' : '#4caf50',
+                        padding: '10px',
+                        marginBottom: '15px',
+                        borderRadius: '5px',
+                    }}
+                >
+                    {message}
+                </div>
+            )}
             <div
                 className="modal-content p-4"
                 style={{
