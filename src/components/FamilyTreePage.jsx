@@ -106,66 +106,40 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         fetchCollaborationRole();
     }, [treeId]);
       
-    const uploadAttachment = (memberId, typeOfFile, file) => {
-        const reader = new FileReader();
-
-        reader.onload = () => {
-            const img = new Image();
-            img.src = reader.result;
-
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-
-                const targetWidth = 100;
-                const targetHeight = 100;
-
-                canvas.width = targetWidth;
-                canvas.height = targetHeight;
-
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-
-                try {
-                    // Save the compressed image in localStorage
-                    localStorage.setItem(`member_${memberId}_image`, compressedBase64);
-
-                    // Update the individuals array without bidirectional relationships
-                    setIndividuals((prevIndividuals) =>
-                        prevIndividuals.map((ind) =>
-                            ind.memberId === memberId ? { ...ind, img: compressedBase64 } : ind
-                        )
-                    );
-
-                    setIsAttachmentModalOpen(false);
-                    alert('Attachment uploaded successfully!');
-
-                    // Set a timer before navigating
-                    setTimeout(() => {
-                        navigate(`/tree/${encodeURIComponent(treeName)}`, { replace: true });
-                    }, 2000); // Delay navigation by 2 seconds
-                } catch (error) {
-                    console.error('Error storing image in localStorage:', error);
-                    alert('Failed to store image.');
-                }
-            };
-
-            img.onerror = () => {
-                alert('Error processing the image.');
-            };
-        };
-
-        reader.onerror = (error) => {
-            console.error('Error reading file:', error);
-            alert('Failed to process the file.');
-        };
-
-        reader.readAsDataURL(file);
+    const uploadAttachment = async (memberId, typeOfFile, file) => {
+        console.log('uploadAttachment called with:', { memberId, typeOfFile, file });
+        if (!memberId || !typeOfFile || !file) {
+            console.error('Missing required parameters:', { memberId, typeOfFile, file });
+            return;
+        }
+    
+        const formData = new FormData();
+        formData.append('memberId', memberId);
+        formData.append('typeOfFile', typeOfFile);
+        formData.append('fileData', file);
+        formData.append('uploadedById', user.id);
+    
+        try {
+            const response = await axios.post('http://localhost:8080/demo/addAttachment', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${user.token}`,
+                },
+                withCredentials: true,
+            });
+    
+            if (response.data === 'Attachment Saved Successfully') {
+                alert('Attachment uploaded successfully!');
+                fetchFamilyMembers(); // Refresh individuals data
+            } else {
+                alert('Error: ' + response.data);
+            }
+        } catch (error) {
+            console.error('Error uploading attachment:', error);
+            alert('Failed to upload attachment.');
+        }
     };
-
+    
     useEffect(() => {
         axios.get('http://localhost:8080/api/login', { withCredentials: true })
             .then(response => {
@@ -216,25 +190,48 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 
     const fetchFamilyMembers = async () => {
         if (!treeId) return;
-
+    
         try {
             const membersResponse = await axios.get('/demo/getFamilyMembersInTree', {
                 params: { treeId },
                 headers: { Authorization: `Bearer ${user.token}` },
             });
-
+    
             const members = membersResponse.data;
-
-            const updatedMembers = members.map((member) => {
-                const storedImage = localStorage.getItem(`member_${member.memberId}_image`);
-                return {
-                    ...member,
-                    gender: member.gender ? member.gender.toLowerCase() : 'other',
-                    pid: member.pid ? [member.pid] : [],
-                    img: storedImage || '/profile-placeholder.png', // Use stored image or fallback
-                };
-            });
-
+    
+            // Fetch attachments for each member and set the first image as `img`
+            const updatedMembers = await Promise.all(
+                members.map(async (member) => {
+                    try {
+                        const attachmentsResponse = await axios.get('/demo/getAttachmentsForMember', {
+                            params: { memberId: member.memberId },
+                            headers: { Authorization: `Bearer ${user.token}` },
+                        });
+                        const attachments = attachmentsResponse.data;
+    
+                        // Find the first attachment with an image MIME type
+                        const firstImage = attachments.find((attachment) =>
+                            attachment.fileData.startsWith('data:image')
+                        );
+    
+                        return {
+                            ...member,
+                            gender: member.gender ? member.gender.toLowerCase() : 'other',
+                            pid: member.pid ? [member.pid] : [],
+                            img: firstImage ? firstImage.fileData : '/profile-placeholder.png', // Use first image or fallback
+                        };
+                    } catch (error) {
+                        console.error(`Error fetching attachments for member ${member.memberId}:`, error);
+                        return {
+                            ...member,
+                            gender: member.gender ? member.gender.toLowerCase() : 'other',
+                            pid: member.pid ? [member.pid] : [],
+                            img: '/profile-placeholder.png', // Fallback image
+                        };
+                    }
+                })
+            );
+    
             // Maintain bidirectional relationships
             updatedMembers.forEach((person) => {
                 person.pid.forEach((partnerId) => {
@@ -244,12 +241,13 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     }
                 });
             });
-
+    
             setIndividuals(updatedMembers);
         } catch (error) {
             console.error('Error fetching family members:', error);
         }
     };
+    
     const renderFamilyTree = () => {
         if (!treeContainerRef.current) {
             console.error("Tree container is not mounted yet.");
@@ -319,7 +317,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 connectors: {
                     type: "step",
                 },
-    
                 menu: {
                     pdfPreview: {
                         text: "PDF Preview",
@@ -720,10 +717,11 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             {isAttachmentModalOpen && (
                 <AttachmentModal
                     memberId={selectedMemberId} // Dynamically set based on the newly added member
-                    userId={user.userId} // Pass the user ID of the uploader
+                    userId={userId} // Pass the user ID of the uploader
+                    userToken={user.token} // Pass the user ID of the uploader
                     onClose={closeAttachmentModal}
-                    onUpload={uploadAttachment}
-                />
+                    onUpload={(memberId, typeOfFile, file) => uploadAttachment(memberId, typeOfFile, file)}
+                    />
             )}
     
             {/* Add Person Modal */}
