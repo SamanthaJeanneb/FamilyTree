@@ -52,31 +52,40 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
   const toggleNotifications = () => {
     setShowNotifications(prevShowNotifications => !prevShowNotifications);
   }
-
-  const handleNotificationClick = async (id, action, treeId) => {
+  const handleNotificationClick = async (notification) => {
     try {
-      const url =
-          action === 'accept'
-              ? `/demo/acceptCollaboration?collaborationId=${id}`
-              : `/demo/declineCollaboration?collaborationId=${id}`;
+      if (notification.message.startsWith("A")) {
 
-      const response = await axios.post(url, {}, { withCredentials: true });
+        navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
+          state: { treeId: notification.treeId.id, userId },
+        });
+        setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
 
-      if (response.data.includes('accepted') || response.data.includes('declined')) {
-        // Remove notification from display
-        setNotifications((prev) =>
-            prev.filter((notification) => notification.id !== id)
-        );
-        setMessage(`Collaboration ${action}ed successfully.`);
+      } else if (notification.message.startsWith("You")) {
+        // Collaboration Invite notification
+        const action = notification.action || "accept"; // Default action is 'accept'
+        const url =
+          action === "accept"
+            ? `/demo/acceptCollaboration?collaborationId=${notification.id}`
+            : `/demo/declineCollaboration?collaborationId=${notification.id}`;
+  
+        const response = await axios.post(url, {}, { withCredentials: true });
+  
+        console.log("Collaboration response:", response.data);
+  
+        if (response.data.includes("accepted") || response.data.includes("declined")) {
+          // Remove notification from the state
+          setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
+          setMessage(`Collaboration ${action}ed successfully.`);
+        }
       }
     } catch (error) {
-      console.error('Error handling collaboration:', error);
+      console.error("Error handling notification:", error);
       setMessage(`Error: ${error.message}`);
     }
-console.log("Given URL: "+url);
-    navigate(url);
   };
-
+  
+  
   useEffect(() => {
     const authenticateAndFetchData = () => {
       axios
@@ -319,56 +328,65 @@ const openTree = (treeId, treeName, userId) => {
                 </div>
 
                 {/* Notification Dropdown */}
-                {showNotifications && (
-                    <div className="notification-dropdown">
-                      <h5>Notifications</h5>
-                      {notifications.length > 0 ? (
-                          notifications.map((notification) => (
-                              <div
-                                  key={notification.id}
-                                  className="notification-item"
-                                  style={{
-                                    padding: '10px',
-                                    borderBottom: '1px solid #f0f0f0',
-                                  }}
-                              >
-                                <p>
-                                  Invited to tree: <strong>{notification.treeId.treeName}</strong>
-                                </p>
-                                <button
-                                    className="btn btn-success btn-sm"
-                                    onClick={() =>
-                                        handleNotificationClick(
-                                            notification.id,
-                                            'accept',
-                                            notification.treeId
-                                        )
-                                    }
-                                    style={{
-                                      marginRight: '2rem'
-                                    }}
-                                >
-                                  Accept
-                                </button>
-                                <button
-                                    className="btn btn-danger btn-sm"
-                                    onClick={() =>
-                                        handleNotificationClick(
-                                            notification.id,
-                                            'deny',
-                                            notification.treeId
-                                        )
-                                    }
-                                >
-                                  Deny
-                                </button>
-                              </div>
-                          ))
-                      ) : (
-                          <p className="no-notifications">No new notifications</p>
-                      )}
-                    </div>
-                )}
+{showNotifications && (
+  <div className="notification-dropdown">
+    <h5>Notifications</h5>
+    {notifications.length > 0 ? (
+      notifications.map((notification) => (
+        <div
+          key={notification.id}
+          className="notification-item"
+          style={{
+            padding: '10px',
+            borderBottom: '1px solid #f0f0f0',
+          }}
+        >
+          {notification.message.startsWith("A") ? (
+            // Suggested Edits
+            <>
+              <p>
+                Suggested Edit: <strong>{notification.treeId.treeName}</strong>
+              </p>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => handleNotificationClick(notification)}
+              >
+                View Edits
+              </button>
+            </>
+          ) : notification.message.startsWith("You") ? (
+            // Collaboration Invite
+            <>
+              <p>
+                Invited to tree: <strong>{notification.treeId.treeName}</strong>
+              </p>
+              <button
+                className="btn btn-success btn-sm"
+                onClick={() => handleNotificationClick({ ...notification, action: "accept" })}
+                style={{
+                  marginRight: '2rem',
+                }}
+              >
+                Accept
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleNotificationClick({ ...notification, action: "deny" })}
+              >
+                Deny
+              </button>
+            </>
+          ) : (
+            <p>Unknown notification type</p>
+          )}
+        </div>
+      ))
+    ) : (
+      <p className="no-notifications">No new notifications</p>
+    )}
+  </div>
+)}
+
                 <button className="btn btn-link">
                 <FaQuestionCircle style={{ color: 'black' }} />
                 </button>

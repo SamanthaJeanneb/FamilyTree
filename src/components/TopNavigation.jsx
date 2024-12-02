@@ -9,7 +9,7 @@ const TopNavigation = ({ username, notifications, toggleNotifications, handleNot
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
       <div className="container-fluid">
-        <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'rgb(73, 73, 73)' }}>Your Trees</h1>
+        <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'rgb(73, 73, 73)' }}>our Trees</h1>
         <div className="d-flex align-items-center">
           <button className="btn btn-link" onClick={toggleNotifications}>
             <FaBell />
@@ -17,7 +17,7 @@ const TopNavigation = ({ username, notifications, toggleNotifications, handleNot
 
           {/* Notification Dropdown */}
           {showNotifications && (
-            <div className="notification-dropdown">
+            <div className="notification-dropdown" style={{ scrollbar-width: 'none'}}>
               <h5>Notifications</h5>
               {notifications.length > 0 ? (
                 notifications.map((notification) => (
