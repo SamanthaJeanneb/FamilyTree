@@ -242,9 +242,16 @@ useEffect(() => {
     
             console.log("Response from approveEdit:", response.data);
     
-            if (response.data === "Suggested edit accepted and applied.") {
+            if (response.data === "Suggested edit accepted, applied, and deleted.") {
                 setMessage('Success: Edit approved.');
-                fetchFamilyMembers(); // Refresh the tree
+    
+                // Remove the approved edit from the state
+                setSuggestedEdits((prevEdits) =>
+                    prevEdits.filter((edit) => edit.suggestionId !== editId)
+                );
+    
+                // Refresh the tree
+                fetchFamilyMembers();
             } else {
                 console.error('Unexpected response:', response.data);
                 setMessage('Error: Unable to approve edit.');
@@ -254,7 +261,6 @@ useEffect(() => {
             setMessage('Error: Failed to approve edit.');
         }
     };
-    
     
     const rejectEdit = async (editId) => {
         if (!editId) {
@@ -743,7 +749,7 @@ useEffect(() => {
                 console.log("Submitting direct edit:", payload.toString());
     
                 const response = await axios.post(
-                    "http://localhost:8080/demo/editFamilyMember",
+                    "/demo/editFamilyMember",
                     payload,
                     {
                         withCredentials: true,
@@ -895,23 +901,46 @@ useEffect(() => {
 {collaborationRole === 'Owner' && suggestedEdits.length > 0 && (
     <div className="suggested-edits">
         <h3>Suggested Edits</h3>
-        <ul>
-        {suggestedEdits.map((edit) => (
-    <li key={edit.suggestionId}>
-        <p>
-            <strong>Suggested By:</strong> {edit.suggestedBy.username}<br />
-            <strong>Field:</strong> {edit.fieldName}<br />
-            <strong>Old Value:</strong> {edit.oldValue || 'N/A'}<br />
-            <strong>New Value:</strong> {edit.newValue}
-        </p>
-        <button onClick={() => approveEdit(edit.suggestionId)}>Approve</button>
-        <button onClick={() => rejectEdit(edit.suggestionId)}>Reject</button>
-    </li>
-))}
-
-        </ul>
+        <table className="edits-table">
+            <thead>
+                <tr>
+                    <th>Suggested By</th>
+                    <th>Field</th>
+                    <th>Old Value</th>
+                    <th>New Value</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {suggestedEdits.map((edit) => (
+                    <tr key={edit.suggestionId}>
+                        <td>{edit.suggestedBy.username}</td>
+                        <td>{edit.fieldName}</td>
+                        <td>{edit.oldValue || 'N/A'}</td>
+                        <td>{edit.newValue}</td>
+                        <td>
+                            <button
+                                className="approve-btn"
+                                onClick={() => approveEdit(edit.suggestionId)}
+                            >
+                                Approve
+                            </button>
+                            <button
+                                className="reject-btn"
+                                onClick={() => rejectEdit(edit.suggestionId)}
+                            >
+                                Reject
+                            </button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
     </div>
 )}
+
+
+
 
 <EditModal
     isOpen={isEditModalOpen}
@@ -940,7 +969,7 @@ useEffect(() => {
             </div>
     
             {/* Floating Add Button */}
-            {individuals.length > 0 && !isModalOpen && !isAttachmentsPersonModalOpen && collaborationRole === 'Owner' && (
+            {individuals.length > 0 && !isModalOpen && !isAttachmentsPersonModalOpen && collaborationRole  === 'Owner' && (
     <button
         className="floating-add-button"
         onClick={openModal}

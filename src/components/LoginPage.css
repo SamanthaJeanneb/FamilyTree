@@ -87,11 +87,13 @@
   font-size: 16px;
   cursor: pointer;
   margin-top: 20px;
-  width: 100%;
+  width: 87%;
 }
 
 .guest-mode-button:hover {
   background-color: #f4f4f4;
+  border: 2px solid #34c759;
+
 }
 
 /* Mobile responsiveness */

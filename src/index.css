@@ -80,7 +80,7 @@ button:focus-visible {
   background-color: white;
   color: #555;
   font-weight: 500;
-  border: 1px solid #ddd;
+  border: 2px solid #ddd;
   border-radius: 4px;
   padding: 8px 12px;
   font-size: 16px;
