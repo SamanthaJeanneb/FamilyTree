@@ -969,7 +969,7 @@ useEffect(() => {
             </div>
     
             {/* Floating Add Button */}
-            {individuals.length > 0 && !isModalOpen && !isAttachmentsPersonModalOpen && collaborationRole  === 'Owner' && (
+            {individuals.length > 0 && !isModalOpen && !isAttachmentsPersonModalOpen &&!isEditModalOpen && !isAttachmentModalOpen && collaborationRole  === 'Owner' && (
     <button
         className="floating-add-button"
         onClick={openModal}

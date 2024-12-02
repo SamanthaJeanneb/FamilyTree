@@ -54,6 +54,7 @@ const FamilyTreePageHeader = ({ username }) => {
             </li>
             <li className="nav-item">
               <span                className="nav-link"
+          onClick={() => navigate('/dashboard')}
 
               >
                 Dashboard

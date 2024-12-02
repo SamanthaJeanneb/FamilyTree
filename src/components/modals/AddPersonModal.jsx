@@ -9,7 +9,6 @@ const AddPersonModal = ({
   newRelationship,
   setNewRelationship,
   individuals,
-  openAttachmentModal,
 }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -39,12 +38,24 @@ const AddPersonModal = ({
       <div
         className="modal-content p-4"
         style={{
-          width: '400px',
+          width: '90vw',
+          maxWidth: '400px',
+          height: 'auto',
+          maxHeight: '80vh',
           backgroundColor: 'white',
           borderRadius: '10px',
           boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
+          overflowY: 'auto',
+          scrollbarWidth: 'none', // For Firefox
         }}
       >
+        <style>
+          {`
+            .modal-content::-webkit-scrollbar {
+              display: none; /* Hide scrollbar for Chrome, Safari, and Edge */
+            }
+          `}
+        </style>
         <h2 className="text-center">Add New Individual</h2>
         <form className="add-person-form" onSubmit={onSubmit}>
           <div className="form-group">
@@ -117,12 +128,11 @@ const AddPersonModal = ({
               onChange={handleRelationshipChange}
             >
               <option value="">Select First Parent</option>
-              {individuals
-                .map((individual) => (
-                  <option key={individual.memberId} value={individual.memberId}>
-                    {individual.name}
-                  </option>
-                ))}
+              {individuals.map((individual) => (
+                <option key={individual.memberId} value={individual.memberId}>
+                  {individual.name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="form-group">
@@ -135,12 +145,11 @@ const AddPersonModal = ({
               onChange={handleRelationshipChange}
             >
               <option value="">Select Second Parent</option>
-              {individuals
-                .map((individual) => (
-                  <option key={individual.memberId} value={individual.memberId}>
-                    {individual.name}
-                  </option>
-                ))}
+              {individuals.map((individual) => (
+                <option key={individual.memberId} value={individual.memberId}>
+                  {individual.name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="form-group">
@@ -160,7 +169,7 @@ const AddPersonModal = ({
               ))}
             </select>
           </div>
-        
+
           <div className="form-buttons d-flex justify-content-between mt-3">
             <button
               type="button"

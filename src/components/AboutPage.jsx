@@ -13,9 +13,8 @@ const AboutPage = ({ username }) => {
         <h1>About Us</h1>
         <p>
           Welcome to the Family Tree app! Our mission is to help users document
-          and visualize their family history with ease. This app is designed
-          with simplicity and functionality in mind, making it accessible for
-          everyone to create and maintain their family trees.
+          and visualize their family history with ease. Our mission is to help users document
+          and visualize their family history with ease.
         </p>
 
         {/* Image Credits Section */}
@@ -47,12 +46,8 @@ const AboutPage = ({ username }) => {
 
         {/* Additional Section */}
         <section>
-          <h2>Our Vision</h2>
-          <p>
-            We believe in preserving family heritage and making it easy for
-            everyone to trace their roots. Our team is committed to creating a
-            seamless and intuitive experience for users, no matter their level
-            of technical expertise.
+          <h2>Team</h2>
+          <p> Rashika Simkhada, Samantha Brown, Luke Romano, Riley Nixon, Aidan Hafer, Sherry Roy
           </p>
         </section>
       </div>
