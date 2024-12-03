@@ -211,9 +211,9 @@ const TreeActionBar = ({
                           Select a tree
                         </option>
                       {ownedTrees
-    .filter((tree) => tree.treeId !== treeId)
+    .filter((tree) => tree.id !== treeId)
     .map((tree) => (
-      <option key={tree.treeId} value={tree.treeId}>
+      <option key={tree.id} value={tree.id}>
         {tree.treeName}
       </option>
     ))}
