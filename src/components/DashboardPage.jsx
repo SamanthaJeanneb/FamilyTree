@@ -317,7 +317,10 @@ const openTree = (treeId, treeName, userId) => {
               <div className="d-flex align-items-center">
                 <div className="notification-icon-wrapper position-relative">
                   <button className="btn btn-link" onClick={toggleNotifications} style={{padding: '0px'}}>
-                  <FaBell style={{ color: 'black' }} />
+                  <FaBell style={{ fontSize: '20px',
+                color: '#333',
+                marginRight: '15px',
+                cursor: 'pointer', }} />
                   </button>
                   {notifications.length > 0 && (
                       <span
