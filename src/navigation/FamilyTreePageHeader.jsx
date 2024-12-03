@@ -8,26 +8,30 @@ import './FamilyTreePageHeader.css'; // Import the custom CSS
 const FamilyTreePageHeader = ({ username, userId }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Determine if the "About" page is active
   const isAboutActive = location.pathname === '/about';
 
-  // Notifications state
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  // Fetch notifications
+ {/*Fetch Notifications*/}
   const fetchNotifications = () => {
     axios
-      .get(`/demo/notifications/${userId}`, { withCredentials: true })
-      .then((response) => {
-        if (response.status === 200) {
-          setNotifications(response.data);
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching notifications:', error);
-      });
+        .get(`/demo/notifications/${userId}`, { withCredentials: true })
+        .then((response) => {
+          // Check if response is okay
+
+          if (response.statusText === "OK") {
+            console.log("Fetched Notifications:", response.data);
+            setNotifications(response.data);
+          } else {
+            throw new Error(`Error: ${response.status}`);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching notifications:", error);
+          setMessage(`Error fetching notifications: ${error.message}`);
+        });
   };
 
   // Toggle notifications dropdown
@@ -35,31 +39,40 @@ const FamilyTreePageHeader = ({ username, userId }) => {
     setShowNotifications((prev) => !prev);
   };
 
-  // Mark notification as read
   const handleNotificationClick = async (notification) => {
     try {
-      // If the action is to accept or deny a collaboration, handle it accordingly
-      if (notification.action) {
-        await axios.post(`/demo/notifications/${notification.id}/action`, {
-          action: notification.action,
-          withCredentials: true,
-        });
-      } else {
-        await axios.post(`/demo/notifications/${notification.id}/mark-read`, {
-          withCredentials: true,
-        });
-      }
+      if (notification.message.startsWith("A")) {
 
-      // Remove the notification from the state
-      setNotifications((prev) =>
-        prev.filter((notif) => notif.id !== notification.id)
-      );
+        navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
+          state: { treeId: notification.treeId.id, userId },
+        });
+        setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
+
+      } else if (notification.message.startsWith("You")) {
+        // Collaboration Invite notification
+        const action = notification.action || "accept"; // Default action is 'accept'
+        const url =
+          action === "accept"
+            ? `/demo/acceptCollaboration?collaborationId=${notification.id}`
+            : `/demo/declineCollaboration?collaborationId=${notification.id}`;
+  
+        const response = await axios.post(url, {}, { withCredentials: true });
+  
+        console.log("Collaboration response:", response.data);
+  
+        if (response.data.includes("accepted") || response.data.includes("declined")) {
+          // Remove notification from the state
+          setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
+          setMessage(`Collaboration ${action}ed successfully.`);
+        }
+      }
     } catch (error) {
-      console.error('Error handling notification:', error);
+      console.error("Error handling notification:", error);
+      setMessage(`Error: ${error.message}`);
     }
   };
+  
 
-  // Fetch notifications on mount
   useEffect(() => {
     fetchNotifications();
   }, []);
@@ -146,8 +159,12 @@ const FamilyTreePageHeader = ({ username, userId }) => {
                 <h5>Notifications</h5>
                 {notifications.length > 0 ? (
                   notifications.map((notification) => (
-                    <div key={notification.id} className="notification-item">
-                      <p>{notification.message}</p>
+                    <div key={notification.id} className="notification-item"
+                    style={{
+                      padding: '10px',
+                      borderBottom: '1px solid #f0f0f0',
+                    }}
+                    >
 
                       {notification.message.startsWith('A') ? (
                         // Suggested Edits
