@@ -118,17 +118,22 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
         
         await axios.post(url, {}, { withCredentials: true });
         setMessage(`Collaboration ${action}ed successfully.`);
-      }
-  
-      // Delete notification
-      await axios.delete(`/demo/notifications/delete`, {
-        params: { userId, notificationId: notification.id },
-        withCredentials: true,
+        
+         // Navigate to the accepted tree
+         if (action === "accept" && notification.treeId?.treeName) {
+          navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
+            state: { treeId: notification.treeId.id, userId },
       });
+    }
+  }
+  
+   // Delete notification
+   await axios.delete(`/demo/notifications/delete`, {
+    params: { userId, notificationId: notification.id },
+    withCredentials: true,});
   
       // Remove the notification from the UI
       setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
-      setMessage("Notification deleted successfully.");
     } catch (error) {
       console.error("Error handling notification:", error);
       setMessage(`Error: ${error.message}`);
