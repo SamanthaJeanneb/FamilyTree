@@ -679,6 +679,9 @@ useEffect(() => {
                         deathdate: selectedMember.deathdate,
                         gender: selectedMember.gender,
                         additionalInfo: selectedMember.additionalInfo,
+                        fid: selectedMember.fid,
+                        mid: selectedMember.mid,
+                        pid: selectedMember.pid,
                     }),
                     newValue: JSON.stringify({
                         name: updatedMember.name,
@@ -686,12 +689,15 @@ useEffect(() => {
                         deathdate: updatedMember.deathdate,
                         gender: updatedMember.gender,
                         additionalInfo: updatedMember.additionalInfo,
+                        fid: updatedMember.fid,
+                        mid: updatedMember.mid,
+                        pid: updatedMember.pid,
                     }),
                 });
     
                 console.log("Submitting suggested edit:", payload.toString());
                 closeEditModal(); // Close the modal
-
+    
                 const response = await axios.post(
                     "/demo/suggestedEdits/create",
                     payload,
@@ -740,9 +746,10 @@ useEffect(() => {
                 }
     
                 if (updatedMember.additionalInfo) payload.append("additionalInfo", updatedMember.additionalInfo);
-                if (updatedMember.pid) payload.append("pid", updatedMember.pid);
-                if (updatedMember.mid) payload.append("mid", updatedMember.mid);
+    
                 if (updatedMember.fid) payload.append("fid", updatedMember.fid);
+                if (updatedMember.mid) payload.append("mid", updatedMember.mid);
+                if (updatedMember.pid) payload.append("pid", updatedMember.pid.join(",")); // Join multiple partner IDs into a string
     
                 console.log("Submitting direct edit:", payload.toString());
     
@@ -760,7 +767,7 @@ useEffect(() => {
     
                 if (response.data === "Family Member Updated Successfully") {
                     console.log("Direct edit successful:", response.data);
-                    setMessage("Success: Individual updated");
+                    setMessage("Success: Individual and relationships updated.");
                     fetchFamilyMembers(); // Refresh the tree
                     closeEditModal(); // Close the modal
                 } else {
@@ -773,7 +780,6 @@ useEffect(() => {
             alert("Failed to save changes. Please try again.");
         }
     };
-    
     
     const deleteMember = async (memberId) => {
         try {
@@ -950,6 +956,7 @@ useEffect(() => {
         setSelectedMemberId(memberId);
         setIsAttachmentModalOpen(true);
     }}
+    individuals={individuals} // Pass the list of individuals for relationship options
 />
 
 
