@@ -563,97 +563,84 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         setInviteEmail('');
         setInviteMessage('');
     }
-    const handleFormSubmit = async (e) => {
+    const handleFormSubmit = (e) => {
         e.preventDefault();
-
+    
         const formattedBirthdate = newPerson.birthdate
             ? new Date(newPerson.birthdate).toISOString().split('T')[0]
             : '';
         const formattedDeathdate = newPerson.deathdate
             ? new Date(newPerson.deathdate).toISOString().split('T')[0]
             : '';
-
-        console.log('Form Submission Initiated');
-        console.log('Collaboration Role:', collaborationRole);
-        console.log('New Person:', newPerson);
-        console.log('Formatted Birthdate:', formattedBirthdate);
-        console.log('Formatted Deathdate:', formattedDeathdate);
-
-        try {
-            if (collaborationRole === 'Owner') {
-                console.log('Owner Role: Adding member directly to the main tree.');
-
-                const formData = new URLSearchParams();
-                formData.append('name', newPerson.name);
-                formData.append('birthdate', formattedBirthdate);
-                formData.append('gender', newPerson.sex);
-                formData.append('userId', userId);
-                formData.append('treeId', treeId);
-                formData.append('addedById', userId);
-                if (formattedDeathdate) formData.append('deathdate', formattedDeathdate);
-                if (newPerson.additionalInfo) formData.append('additionalInfo', newPerson.additionalInfo);
-                formData.append('isPrivate', newPerson.isPrivate.toString());
-                if (newRelationship.fid) formData.append('fid', newRelationship.fid);
-                if (newRelationship.mid) formData.append('mid', newRelationship.mid);
-                if (newRelationship.pid) formData.append('pid', newRelationship.pid);
-
-                console.log('Form Data for Main Tree:', formData.toString());
-
-                await axios.post('/demo/addFamilyMember', formData, {
-                    headers: {
-                        Authorization: `Bearer ${user.token}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
+    
+        const formData = new URLSearchParams();
+        formData.append('name', newPerson.name);
+        formData.append('birthdate', formattedBirthdate);
+        formData.append('gender', newPerson.sex);
+        formData.append('userId', userId);
+        formData.append('treeId', treeId);
+        formData.append('addedById', userId);
+        if (formattedDeathdate) formData.append('deathdate', formattedDeathdate);
+        if (newPerson.additionalInfo) formData.append('additionalInfo', newPerson.additionalInfo);
+        formData.append('isPrivate', newPerson.isPrivate.toString());
+        if (newRelationship.fid) formData.append('fid', newRelationship.fid);
+        if (newRelationship.mid) formData.append('mid', newRelationship.mid);
+        if (newRelationship.pid) formData.append('pid', newRelationship.pid);
+        console.log('Submitting form with data:', {
+        name: newPerson.name,
+        birthdate: formattedBirthdate,
+        gender: newPerson.sex,
+        userId,
+        treeId,
+        addedById: userId,
+        deathdate: formattedDeathdate,
+        additionalInfo: newPerson.additionalInfo,
+        isPrivate: newPerson.isPrivate,
+        fid: newRelationship.fid,
+        mid: newRelationship.mid,
+        pid: newRelationship.pid,
+    });
+        axios
+            .post('/demo/addFamilyMember', formData, {
+                headers: {
+                    Authorization: `Bearer ${user.token}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then((response) => {
+                const memberId = response.data.memberId; // Assume backend returns the `memberId` of the newly added member
+                if (!memberId) {
+                    throw new Error('Member ID not returned by backend');
+                }
+    
+                // Fetch family members to update the tree
+                fetchFamilyMembers();
+    
+                // Reset form fields
+                setNewPerson({
+                    name: '',
+                    sex: 'Male',
+                    birthdate: '',
+                    deathdate: '',
+                    additionalInfo: '',
+                    isPrivate: false,
                 });
-
-                setMessage('Success: Member added to the main tree.');
-                fetchFamilyMembers(); // Refresh the tree
-            } else if (collaborationRole === 'Editor') {
-                console.log('Editor Role: Submitting suggested edit.');
-
-                // Generate the suggested edits payload
-                const payload = new URLSearchParams({
-                    memberId: '', // Omit if creating a new member
-                    suggestedById: user.id,
-                    fieldName: 'name',
-                    oldValue: '', // Leave empty for new entries
-                    newValue: newPerson.name, // Example of name edit
-                });
-
-                console.log('Payload for Suggested Edit:', payload.toString());
-
-                const response = await axios.post('/demo/suggestedEdits/create', payload, {
-                    headers: {
-                        Authorization: `Bearer ${user.token}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                });
-
-                console.log('Suggested Edit Response:', response.data);
-
-                setMessage('Your edit has been submitted for approval.');
-            } else {
-                console.warn('Unauthorized Role: User does not have permission to add members.');
-                setMessage('You do not have permission to add members.');
-            }
-
-            // Reset form and close modal
-            setNewPerson({
-                name: '',
-                sex: 'Male',
-                birthdate: '',
-                deathdate: '',
-                additionalInfo: '',
-                isPrivate: false,
+                setNewRelationship({ fid: '', mid: '', pid: '' });
+    
+                // Close the add person modal    
+                // Open the attachment modal for the newly added member
+                setSelectedMemberId(memberId);
+                setIsAttachmentModalOpen(true);
+                if (!isAttachmentModalOpen) {
+                    fetchFamilyMembers(); // Refresh the tree
+                    closeModal(); 
+                    
+                }
+            })
+            .catch((error) => {
+                console.error('Error adding family member:', error);
             });
-            setNewRelationship({ fid: '', mid: '', pid: '' });
-            closeModal();
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            setMessage('Error: Unable to submit your changes.');
-        }
     };
-
 
 
     const onClose = () => {

@@ -136,7 +136,15 @@ const EditModal = ({
                                 <option value="other">Other</option>
                             </select>
                         </div>
-
+                        <div className="attachments-section mt-3 text-center">
+                    <button
+                        type="button"
+                        className="btn btn-info"
+                        onClick={() => onAddAttachment(member.memberId)}
+                    >
+                        <FaPaperclip /> Upload/Delete Attachments
+                    </button>
+                </div>
                         {/* Action Buttons */}
                         <div className="form-buttons d-flex justify-content-between mt-4">
                             <button
@@ -146,6 +154,13 @@ const EditModal = ({
                             >
                                 Cancel
                             </button>
+                            <button
+                                    type="button"
+                                    className="btn btn-danger mr-2"
+                                    onClick={() => onDelete(member.memberId)}
+                                >
+                                    <FaTrash /> Delete
+                                </button>
                             <button
                                 type="button"
                                 className="btn btn-primary"
@@ -219,13 +234,7 @@ const EditModal = ({
                                 Back
                             </button>
                             <div className="d-flex">
-                                <button
-                                    type="button"
-                                    className="btn btn-danger mr-2"
-                                    onClick={() => onDelete(member.memberId)}
-                                >
-                                    <FaTrash /> Delete
-                                </button>
+
                                 <button
                                     type="button"
                                     className="btn btn-primary"

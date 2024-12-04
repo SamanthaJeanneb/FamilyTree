@@ -5,9 +5,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './DashboardPage.css';
 import { Trash, Star, Network, PanelsTopLeft } from 'lucide-react';
 import axios from "axios";
+import MergeHandler from './handlers/MergeHandler';
 
 const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) => {
     const [isCreatePromptOpen, setCreatePromptOpen] = useState(false);
+    const [mergeId, setMergeId] = useState(null); // Store mergeId for MergeHandler
+    const [showMergeHandler, setShowMergeHandler] = useState(false); // Toggle MergeHandler visibility
     const [treeName, setTreeName] = useState('');
     const [visibility, setVisibility] = useState('public');
     const [trees, setTrees] = useState([]);
@@ -35,7 +38,23 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
                 console.error('Error fetching collaborator trees:', error);
             });
     };
+    const handleMergeNotificationClick = (notification) => {
+      console.log("Notification clicked:", notification); // Log the entire notification object
+      const mergeId = parseInt(notification.url, 10); // Extract mergeId from URL
+  
+      if (!isNaN(mergeId)) {
+          console.log("Extracted mergeId:", mergeId); // Log the extracted mergeId
+          setMergeId(mergeId); // Set the mergeId
+          setShowMergeHandler(true); // Show MergeHandler
+      } else {
+          console.error("Invalid mergeId in notification URL:", notification.url); // Log an error with the invalid URL
+      }
+  };
+  
 
+  const closeMergeHandler = () => {
+      setShowMergeHandler(false);
+  };
     const handleCollaboratorTreesClick = (e) => {
         e.preventDefault();
         setActiveLink("collaboratorTrees");
@@ -53,96 +72,74 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     const toggleNotifications = () => {
         setShowNotifications(prevShowNotifications => !prevShowNotifications);
     }
-    const fetchMergeRequests = async (treeId) => {
-        try {
-            const response = await axios.get(`/demo/getMergeRequests`, {
-                params: { treeId },
-                withCredentials: true,
-            });
-
-            if (response.status === 200) {
-                // Assuming each merge request has an id field
-                const mergeRequests = response.data.map((request) => ({
-                    id: request.id, // mergeRequestId
-                    treeName: request.targetTree.treeName,
-                    initiator: request.initiator, // User initiating the merge
-                }));
-                setMergeRequests(mergeRequests); // Update state with merge requests
-                console.log("Merge Requests Fetched:", mergeRequests);
-            } else {
-                throw new Error(`Error: ${response.status}`);
-            }
-        } catch (error) {
-            console.error("Error fetching merge requests:", error);
-            setMessage(`Error fetching merge requests: ${error.message}`);
-        }
-    };
-    useEffect(() => {
-        if (userId) {
-            fetchMergeRequests(10); // Replace with the specific treeId if known
-        }
-    }, [userId]);
 
     const handleNotificationClick = async (notification) => {
-        try {
-            if (notification.message.startsWith("A merge")) {
-                // Handle merge request using stored mergeRequestId
-                const mergeRequest = mergeRequests.find(
-                    (request) => request.treeName === notification.treeId.treeName
-                );
-
-                if (mergeRequest) {
-                    const action = notification.action || "accept";
-                    const url =
-                        action === "accept"
-                            ? `/demo/acceptMergeRequest?mergeRequestId=${mergeRequest.id}`
-                            : `/demo/declineMergeRequest?mergeRequestId=${mergeRequest.id}`;
-
-                    await axios.post(url, {}, { withCredentials: true });
-                    setMessage(`Merge request ${action}ed successfully.`);
-                } else {
-                    setMessage("Merge request not found.");
-                }
-            } else if (notification.message.startsWith("A new")) {
-                // Handle suggested edits
-                navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
-                    state: { treeId: notification.treeId.id, userId },
-                });
-            } else if (notification.message.startsWith("You")) {
-                // Handle collaboration invite
-                const action = notification.action || "accept";
-                const url =
-                    action === "accept"
-                        ? `/demo/acceptCollaboration?notificationId=${notification.id}&userId=${userId}`
-                        : `/demo/declineCollaboration?notificationId=${notification.id}&userId=${userId}`;
-
-                const response = await axios.post(url, {}, { withCredentials: true });
-                setMessage(`Collaboration ${action}ed successfully.`);
-                if (response.data.includes("accepted") || response.data.includes("declined")) {
-                    // Remove notification from the state
-                    setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
-                    setMessage(`Collaboration ${action}ed successfully.`);
-                }
-                // Navigate to the accepted tree
-                if (action === "accept" && notification.treeId?.treeName) {
-                    navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
-                        state: { treeId: notification.treeId.id, userId },
-                    });
-                }
-            }
-
-            // Delete notification
-            // await axios.delete(`/demo/notifications/delete`, {
-            //  params: { userId, notificationId: notification.id },
-            //  withCredentials: true,});
-            //
-            //    // Remove the notification from the UI
-            //    setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
-        } catch (error) {
-            console.error("Error handling notification:", error);
-            setMessage(`Error: ${error.message}`);
-        }
-    };
+      try {
+          if (notification.message.startsWith("A merge")) {
+              // Handle merge request using stored mergeRequestId
+              const mergeRequest = mergeRequests.find(
+                  (request) => request.treeName === notification.treeId.treeName
+              );
+  
+              if (mergeRequest) {
+                  const action = notification.action || "accept";
+                  const url =
+                      action === "accept"
+                          ? `/demo/acceptMergeRequest?mergeRequestId=${mergeRequest.id}`
+                          : `/demo/declineMergeRequest?mergeRequestId=${mergeRequest.id}`;
+  
+                  await axios.post(url, {}, { withCredentials: true });
+                  setMessage(`Merge request ${action}ed successfully.`);
+              } else {
+                  setMessage("Merge request not found.");
+              }
+  
+              // Delete the notification after opening the merge handler
+              await axios.delete(`/demo/notifications/delete`, {
+                  params: { userId, notificationId: notification.id },
+                  withCredentials: true,
+              });
+  
+              setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
+          } else if (notification.message.startsWith("A new")) {
+              // Handle suggested edits
+              navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
+                  state: { treeId: notification.treeId.id, userId },
+              });
+          } else if (notification.message.startsWith("You")) {
+              // Handle collaboration invite
+              const action = notification.action || "accept";
+              const url =
+                  action === "accept"
+                      ? `/demo/acceptCollaboration?notificationId=${notification.id}&userId=${userId}`
+                      : `/demo/declineCollaboration?notificationId=${notification.id}&userId=${userId}`;
+  
+              const response = await axios.post(url, {}, { withCredentials: true });
+              setMessage(`Collaboration ${action}ed successfully.`);
+              if (response.data.includes("accepted") || response.data.includes("declined")) {
+                  setMessage(`Collaboration ${action}ed successfully.`);
+              }
+              // Navigate to the accepted tree
+              if (action === "accept" && notification.treeId?.treeName) {
+                  navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
+                      state: { treeId: notification.treeId.id, userId },
+                  });
+              }
+          }
+  
+          // Delete the notification (fallback for other cases)
+          await axios.delete(`/demo/notifications/delete`, {
+              params: { userId, notificationId: notification.id },
+              withCredentials: true,
+          });
+  
+          setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
+      } catch (error) {
+          console.error("Error handling notification:", error);
+          setMessage(`Error: ${error.message}`);
+      }
+  };
+  
 
 
     useEffect(() => {
@@ -313,6 +310,7 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     const allowDrop = (e) => e.preventDefault();
 
     return (
+  
         <div className="dashboard-container d-flex">
             {/* Sidebar */}
             <div className="dashboard-sidebar bg-light position-fixed">
@@ -390,85 +388,78 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
                             </div>
 
                             {/* Notification Dropdown */}
-                            {showNotifications && (
-                                <div className="notification-dropdown">
-                                    <h5>Notifications</h5>
-                                    {notifications.length > 0 ? (
-                                        notifications.map((notification) => (
-                                            <div
-                                                key={notification.id}
-                                                className="notification-item"
-                                                style={{
-                                                    padding: '10px',
-                                                    borderBottom: '1px solid #f0f0f0',
-                                                }}
-                                            >
-                                                {notification.message.startsWith("A new") ? (
-                                                    // Suggested Edits Notification
-                                                    <>
-                                                        <p>
-                                                            Suggested Edit for Tree: <strong>{notification.treeId.treeName}</strong>
-                                                        </p>
-                                                        <button
-                                                            className="btn btn-primary btn-sm"
-                                                            onClick={() => handleNotificationClick(notification)}
-                                                        >
-                                                            View Edits
-                                                        </button>
-                                                    </>
-                                                ) : notification.message.startsWith("A merge") ? (
-                                                    // Merge Request Notification
-                                                    <>
-                                                        <p>
-                                                            Merge Request for Tree: <strong>{notification.treeId.treeName}</strong>
-                                                        </p>
-                                                        <div className="d-flex">
-                                                            <button
-                                                                className="btn btn-success btn-sm me-2"
-                                                                onClick={() => handleNotificationClick({ ...notification, action: "accept" })}
-                                                            >
-                                                                Accept
-                                                            </button>
-                                                            <button
-                                                                className="btn btn-danger btn-sm"
-                                                                onClick={() => handleNotificationClick({ ...notification, action: "deny" })}
-                                                            >
-                                                                Deny
-                                                            </button>
-                                                        </div>
-                                                    </>
-                                                ) : notification.message.startsWith("You") ? (
-                                                    // Collaboration Invite
-                                                    <>
-                                                        <p>
-                                                            Invited to tree: <strong>{notification.treeId.treeName}</strong>
-                                                        </p>
-                                                        <button
-                                                            className="btn btn-success btn-sm"
-                                                            onClick={() => handleNotificationClick({ ...notification, action: "accept" })}
-                                                            style={{
-                                                                marginRight: '2rem',
-                                                            }}
-                                                        >
-                                                            Accept
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-danger btn-sm"
-                                                            onClick={() => handleNotificationClick({ ...notification, action: "deny" })}
-                                                        >
-                                                            Deny
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <p>Unknown notification type</p>
-                                                )}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="no-notifications">No new notifications</p>
-                                    )}
-                                </div>
-                            )}
+{showNotifications && (
+    <div className="notification-dropdown">
+        <h5>Notifications</h5>
+        {notifications.length > 0 ? (
+            notifications.map((notification) => (
+                <div
+                    key={notification.id}
+                    className="notification-item"
+                    style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #f0f0f0',
+                    }}
+                >
+                    {notification.message.startsWith("A new") ? (
+                        // Suggested Edits Notification
+                        <>
+                            <p>
+                                Suggested Edit for Tree: <strong>{notification.treeId.treeName}</strong>
+                            </p>
+                            <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleNotificationClick(notification)}
+                            >
+                                View Edits
+                            </button>
+                        </>
+                    ) : notification.message.startsWith("A merge") ? (
+                        // Merge Request Notification
+                        <>
+                            <p>
+                                Merge Request for Tree: <strong>{notification.treeId.treeName}</strong>
+                            </p>
+                            <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleMergeNotificationClick(notification)}
+                            >
+                                View Merge Request
+                            </button>
+                        </>
+                    ) : notification.message.startsWith("You") ? (
+                        // Collaboration Invite
+                        <>
+                            <p>
+                                Invited to tree: <strong>{notification.treeId.treeName}</strong>
+                            </p>
+                            <button
+                                className="btn btn-success btn-sm"
+                                onClick={() => handleNotificationClick({ ...notification, action: "accept" })}
+                                style={{
+                                    marginRight: '2rem',
+                                }}
+                            >
+                                Accept
+                            </button>
+                            <button
+                                className="btn btn-danger btn-sm"
+                                onClick={() => handleNotificationClick({ ...notification, action: "deny" })}
+                            >
+                                Deny
+                            </button>
+                        </>
+                    ) : (
+                        <p>Unknown notification type</p>
+                    )}
+                </div>
+            ))
+        ) : (
+            <p className="no-notifications">No new notifications</p>
+        )}
+         
+    </div>
+)}
 
 
                             <button className="btn btn-link">
@@ -631,6 +622,12 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
 
 
                     </>) }
+                    <div className = "merge-handler">
+{showMergeHandler && (
+                    <MergeHandler mergeId={mergeId} onClose={closeMergeHandler} />
+                )}
+
+</div>
             </div>
         </div>
     );
