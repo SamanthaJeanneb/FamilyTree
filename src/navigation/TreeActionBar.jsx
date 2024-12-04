@@ -139,8 +139,8 @@ const TreeActionBar = ({
         null, // No request body
         {
           params: {
-            requesterTreeId: treeId, // Current tree ID
-            targetTreeId: selectedMergeTree, // Numeric ID of the selected tree
+            requesterTreeId: selectedMergeTree, // Current tree ID
+            targetTreeId: treeId, // Numeric ID of the selected tree
             initiatorUserId: userId, // User initiating the merge
           },
           headers: { Authorization: `Bearer ${userToken}` },
