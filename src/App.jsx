@@ -68,10 +68,10 @@ const App = () => {
                         path="/account"
                         element={<AccountPage setIsAuthenticated={setIsAuthenticated} setIsGuest={setIsGuest} user={user} setUser={setUser} />}
                     />
-                   <Route
+                   {/* <Route
   path="/about"
   element={<AboutPage username={user.name} />}
-/>
+/> */}
                 </Routes>
             </div>
         </Router>
