@@ -109,28 +109,33 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         setSelectedMemberId(null);
         setIsAttachmentModalOpen(false);
     };
- const fetchCollaborationRole = async () => {
-    try {
-        const response = await axios.get('/demo/getCollaborationByUser', {
-            params: { userId: userId },
-            headers: { Authorization: `Bearer ${user.token}` },
-        });
-
-        console.log('Response from backend:', response.data);
-        const collaborations = Array.isArray(response.data) ? response.data : response.data.collaborations || [];
-
-        const treeCollaboration = collaborations.find(c => c.familyTree?.id === treeId);
-        if (treeCollaboration) {
-            setCollaborationRole(treeCollaboration.role);
-            setViewOnly(treeCollaboration.role === 'Viewer');
-        } else {
-            console.warn('No collaboration found for this tree.');
+    const fetchCollaborationRole = async () => {
+        try {
+            const response = await axios.get('/demo/getCollaborationByUser', {
+                params: { userId: userId },
+                headers: { Authorization: `Bearer ${user.token}` },
+            });
+    
+            console.log('Response from backend:', response.data);
+            const collaborations = Array.isArray(response.data) ? response.data : response.data.collaborations || [];
+    
+            const treeCollaboration = collaborations.find(c => c.familyTree?.id === treeId);
+            if (treeCollaboration) {
+                setCollaborationRole(treeCollaboration.role);
+                setViewOnly(treeCollaboration.role === 'Viewer');
+            } else {
+                console.warn('No collaboration found for this tree. Defaulting to Viewer role.');
+                setCollaborationRole('Viewer');
+                setViewOnly(true); // Set view-only permissions for default Viewer role
+            }
+        } catch (error) {
+            console.error('Error fetching collaboration role:', error);
+            // If there's an error fetching roles, default to Viewer
+            setCollaborationRole('Viewer');
+            setViewOnly(true);
         }
-    } catch (error) {
-        console.error('Error fetching collaboration role:', error);
-    }
-};
-
+    };
+    
     useEffect(() => {
         fetchCollaborationRole();
     }, [treeId]);
@@ -649,13 +654,6 @@ useEffect(() => {
         }
     };
     
-    
-    useEffect(() => {
-        if (!treeId) {
-            console.error('Tree ID is missing. Redirecting to dashboard.');
-            navigate('/dashboard');
-        }
-    }, [treeId]);
 
 
     const onClose = () => {
