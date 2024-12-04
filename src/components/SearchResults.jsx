@@ -25,8 +25,8 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
         try {
             const url =
                 action === 'accept'
-                    ? `/demo/acceptCollaboration?collaborationId=${id}`
-                    : `/demo/declineCollaboration?collaborationId=${id}`;
+                    ? `/demo/acceptCollaboration?notificationId=${id}&userId=${userId}`
+                    : `/demo/declineCollaboration?notificationId=${id}&userId=${userId}`;
 
             const response = await axios.post(url, {}, { withCredentials: true });
 
@@ -112,7 +112,7 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                 setUsername(''); // Clear username if authentication fails
             });
     };
-    
+
 
     const handleGoogleLogin = () => {
         // Redirect to the backend Google OAuth2 authorization endpoint
@@ -174,64 +174,64 @@ const SearchResults = ({ setIsAuthenticated, setUser, user }) => {
                     )}
                     {user && ( // If user exists, show the profile section
                         <div className="col-sm d-flex justify-content-end align-items-center">
-                             <button className="btn btn-link" onClick={toggleNotifications} style={{padding: '0px'}}></button>
-                             <FaBell
-            style={{
-                fontSize: '20px',
-                color: '#333',
-                marginRight: '15px',
-                cursor: 'pointer',
-            }}
-            onClick={toggleNotifications}
-        />
+                            <button className="btn btn-link" onClick={toggleNotifications} style={{padding: '0px'}}></button>
+                            <FaBell
+                                style={{
+                                    fontSize: '20px',
+                                    color: '#333',
+                                    marginRight: '15px',
+                                    cursor: 'pointer',
+                                }}
+                                onClick={toggleNotifications}
+                            />
 
-        
-        {/* Notification Dropdown */}
-        {showNotifications && (
-            <div className="notification-dropdown">
-                <h5>Notifications</h5>
-                {notifications.length > 0 ? (
-                    notifications.map((notification) => (
-                        <div 
-                        className="notification-item" 
-                        key={notification.id}
-                        style={{
-                            padding: '10px',
-                            borderBottom: '1px solid #f0f0f0',
-                          }}
-                          >
-                            <p>{notification.message}</p>
 
-                            {notification.type === 'collaborationRequest' && (
-                                <div className="notification-actions">
-                                    <button
-                                        onClick={() =>
-                                            handleNotificationClick(notification.id, 'accept', notification.treeId)
-                                        }
-                                        className="accept-btn"
-                                    >
-                                        Accept
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            handleNotificationClick(notification.id, 'decline', notification.treeId)
-                                        }
-                                        className="decline-btn"
-                                    >
-                                        Decline
-                                    </button>
+                            {/* Notification Dropdown */}
+                            {showNotifications && (
+                                <div className="notification-dropdown">
+                                    <h5>Notifications</h5>
+                                    {notifications.length > 0 ? (
+                                        notifications.map((notification) => (
+                                            <div
+                                                className="notification-item"
+                                                key={notification.id}
+                                                style={{
+                                                    padding: '10px',
+                                                    borderBottom: '1px solid #f0f0f0',
+                                                }}
+                                            >
+                                                <p>{notification.message}</p>
+
+                                                {notification.type === 'collaborationRequest' && (
+                                                    <div className="notification-actions">
+                                                        <button
+                                                            onClick={() =>
+                                                                handleNotificationClick(notification.id, 'accept', notification.treeId)
+                                                            }
+                                                            className="accept-btn"
+                                                        >
+                                                            Accept
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleNotificationClick(notification.id, 'decline', notification.treeId)
+                                                            }
+                                                            className="decline-btn"
+                                                        >
+                                                            Decline
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="no-notifications"> No new notifications</p>
+                                    )}
                                 </div>
                             )}
-                        </div>
-                    ))
-                ) : (
-                    <p className="no-notifications"> No new notifications</p>
-                )}
-            </div>
-        )}             
                             <div className="d-flex align-items-center"
-                                style={{ cursor: 'pointer' }}
-                                onClick={() => navigate('/account')}>
+                                 style={{ cursor: 'pointer' }}
+                                 onClick={() => navigate('/account')}>
                                 <img
                                     src="/profile-placeholder.png"
                                     alt="Profile"

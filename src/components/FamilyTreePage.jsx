@@ -84,22 +84,22 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     }, []);
     const openAttachmentsPersonModal = async (memberId) => {
         try {
-          const response = await axios.get("/demo/getAttachmentsForMember", {
-            params: { memberId },
-            headers: { Authorization: `Bearer ${user.token}` },
-          });
-          setAttachments(response.data);
-          setIsAttachmentsPersonModalOpen(true);
+            const response = await axios.get("/demo/getAttachmentsForMember", {
+                params: { memberId },
+                headers: { Authorization: `Bearer ${user.token}` },
+            });
+            setAttachments(response.data);
+            setIsAttachmentsPersonModalOpen(true);
         } catch (error) {
-          console.error("Error fetching attachments:", error);
+            console.error("Error fetching attachments:", error);
         }
-      };
-    
-      const closeAttachmentsPersonModal = () => {
+    };
+
+    const closeAttachmentsPersonModal = () => {
         setAttachments([]);
         setIsAttachmentsPersonModalOpen(false);
-      };
-    
+    };
+
     const openAttachmentModal = (memberId) => {
         setSelectedMemberId(memberId);
         setIsAttachmentModalOpen(true);
@@ -115,10 +115,10 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 params: { userId: userId },
                 headers: { Authorization: `Bearer ${user.token}` },
             });
-    
+
             console.log('Response from backend:', response.data);
             const collaborations = Array.isArray(response.data) ? response.data : response.data.collaborations || [];
-    
+
             const treeCollaboration = collaborations.find(c => c.familyTree?.id === treeId);
             if (treeCollaboration) {
                 setCollaborationRole(treeCollaboration.role);
@@ -135,11 +135,11 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             setViewOnly(true);
         }
     };
-    
+
     useEffect(() => {
         fetchCollaborationRole();
     }, [treeId]);
-      
+
     const uploadAttachment = async (memberId, typeOfFile, file) => {
         if (!memberId || !typeOfFile || !file) {
             setMessage('Error: Missing required parameters.');
@@ -172,7 +172,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
             setMessage('Error uploading attachment.');
         }
     };
-    
+
     useEffect(() => {
         axios.get('http://localhost:8080/api/login', { withCredentials: true })
             .then(response => {
@@ -181,7 +181,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                         setIsAuthenticated(true);
                         setUser(response.data);
                         setUsername(response.data.name);
-                        
+
                         // When determining the viewOnly attribute, there are 3 things to consider:
                         // 1. Does the user own this true?  viewOnly = false
                         // 2. If the user does not own the tree, Is the true public?
@@ -189,14 +189,14 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
 
                         // Need to check to see if the current user is the owner
                         // If the current user is not the owner, then check if the tree is public
-                       setViewOnly(false);
+                        setViewOnly(false);
                     }
                 }
             }).then(() => {
-                if (treeId && userId) {
-                    fetchFamilyMembers();
-                }
-            })
+            if (treeId && userId) {
+                fetchFamilyMembers();
+            }
+        })
             .catch(error => {
                 console.log("User not authenticated:", error);
                 setIsAuthenticated(false);
@@ -214,12 +214,12 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     }, [individuals, isAttachmentModalOpen]);
 
 // Add this useEffect
-useEffect(() => {
-    fetchFamilyMembers();
-    if (collaborationRole === 'Owner') {
-        fetchSuggestedEdits();
-    }
-}, [treeId, collaborationRole]);
+    useEffect(() => {
+        fetchFamilyMembers();
+        if (collaborationRole === 'Owner') {
+            fetchSuggestedEdits();
+        }
+    }, [treeId, collaborationRole]);
     useEffect(() => {
         if (treeId && userId) {
             fetchFamilyMembers();
@@ -231,30 +231,30 @@ useEffect(() => {
             setMessage("Error: Missing suggestion ID.");
             return;
         }
-    
+
         try {
             const payload = new URLSearchParams();
             payload.append("suggestionId", editId);
-    
+
             console.log("Payload for approveEdit:", payload.toString());
-    
+
             const response = await axios.post('/demo/suggestedEdits/accept', payload, {
                 headers: {
                     Authorization: `Bearer ${user.token}`,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
             });
-    
+
             console.log("Response from approveEdit:", response.data);
-    
+
             if (response.data === "Suggested edit accepted, applied, and deleted.") {
                 setMessage('Success: Edit approved.');
-    
+
                 // Remove the approved edit from the state
                 setSuggestedEdits((prevEdits) =>
                     prevEdits.filter((edit) => edit.suggestionId !== editId)
                 );
-    
+
                 // Refresh the tree
                 fetchFamilyMembers();
             } else {
@@ -266,24 +266,24 @@ useEffect(() => {
             setMessage('Error: Failed to approve edit.');
         }
     };
-    
+
     const rejectEdit = async (editId) => {
         if (!editId) {
             setMessage("Error: Missing suggestion ID.");
             return;
         }
-    
+
         try {
             const payload = new URLSearchParams();
             payload.append("suggestionId", editId);
-    
+
             const response = await axios.post('/demo/suggestedEdits/decline', payload, {
                 headers: {
                     Authorization: `Bearer ${user.token}`,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
             });
-    
+
             if (response.data === "Suggested edit declined and removed successfully.") {
                 setMessage('Success: Edit rejected.');
                 setSuggestedEdits((prev) =>
@@ -296,35 +296,35 @@ useEffect(() => {
             setMessage('Error: Failed to reject edit.');
         }
     };
-    
+
     const fetchSuggestedEdits = async () => {
         try {
             const response = await axios.get('/demo/suggestedEdits/review', {
                 params: { treeId },
                 headers: { Authorization: `Bearer ${user.token}` },
             });
-    
+
             console.log("Fetched Suggested Edits:", response.data);
-    
+
             setSuggestedEdits(response.data);
         } catch (error) {
             console.error('Error fetching suggested edits:', error);
         }
     };
-    
-    
+
+
     const fetchFamilyMembers = async () => {
         if (!treeId) return;
-    
+
         try {
             // Fetch main tree members
             const membersResponse = await axios.get('/demo/getFamilyMembersInTree', {
                 params: { treeId },
                 headers: { Authorization: `Bearer ${user.token}` },
             });
-    
+
             const members = membersResponse.data;
-    
+
             // Fetch attachments for each member and set the first image as `img`
             const updatedMembers = await Promise.all(
                 members.map(async (member) => {
@@ -334,12 +334,12 @@ useEffect(() => {
                             headers: { Authorization: `Bearer ${user.token}` },
                         });
                         const attachments = attachmentsResponse.data;
-    
+
                         // Find the first attachment with an image MIME type
                         const firstImage = attachments.find((attachment) =>
                             attachment.fileData.startsWith('data:image')
                         );
-    
+
                         return {
                             ...member,
                             gender: member.gender ? member.gender.toLowerCase() : 'other',
@@ -357,7 +357,7 @@ useEffect(() => {
                     }
                 })
             );
-    
+
             // Maintain bidirectional relationships
             updatedMembers.forEach((person) => {
                 person.pid.forEach((partnerId) => {
@@ -367,10 +367,10 @@ useEffect(() => {
                     }
                 });
             });
-    
+
             // Set the main tree members
             setIndividuals(updatedMembers);
-    
+
             // If the user is an Owner, fetch suggested edits
             if (collaborationRole === 'Owner') {
                 try {
@@ -378,7 +378,7 @@ useEffect(() => {
                         params: { treeId },
                         headers: { Authorization: `Bearer ${user.token}` },
                     });
-    
+
                     const suggestedEdits = editsResponse.data;
                     setSuggestedEdits(suggestedEdits); // Store suggested edits in state
                 } catch (error) {
@@ -389,13 +389,13 @@ useEffect(() => {
             console.error('Error fetching family members:', error);
         }
     };
-    
+
     const renderFamilyTree = () => {
         if (!treeContainerRef.current) {
             console.error("Tree container is not mounted yet.");
             return;
         }
-    
+
         // Dynamically generate nodes with yellow tag for all individuals
         const nodes = individuals.map((person) => ({
             id: person.memberId,
@@ -413,10 +413,10 @@ useEffect(() => {
                 person.gender === "male"
                     ? "john_male"
                     : person.gender === "female"
-                    ? "john_female"
-                    : "john",
+                        ? "john_female"
+                        : "john",
         }));
-    
+
         try {
             familyTreeInstance.current = new FamilyTree(treeContainerRef.current, {
                 template: "john",
@@ -479,7 +479,7 @@ useEffect(() => {
                 },
                 mode: "light",
             });
-    
+
             // Event handler for custom button clicks
             if (collaborationRole !== "Viewer") {
                 familyTreeInstance.current.editUI.on("button-click", (sender, args) => {
@@ -490,13 +490,13 @@ useEffect(() => {
                     }
                 });
             }
-    
+
             console.log("FamilyTree rendered successfully.");
         } catch (error) {
             console.error("Error rendering FamilyTree:", error);
         }
     };
-    
+
     const sendInvite = () => {
         const data = {
             treeId: treeId,
@@ -565,24 +565,24 @@ useEffect(() => {
     }
     const handleFormSubmit = async (e) => {
         e.preventDefault();
-    
+
         const formattedBirthdate = newPerson.birthdate
             ? new Date(newPerson.birthdate).toISOString().split('T')[0]
             : '';
         const formattedDeathdate = newPerson.deathdate
             ? new Date(newPerson.deathdate).toISOString().split('T')[0]
             : '';
-    
+
         console.log('Form Submission Initiated');
         console.log('Collaboration Role:', collaborationRole);
         console.log('New Person:', newPerson);
         console.log('Formatted Birthdate:', formattedBirthdate);
         console.log('Formatted Deathdate:', formattedDeathdate);
-    
+
         try {
             if (collaborationRole === 'Owner') {
                 console.log('Owner Role: Adding member directly to the main tree.');
-    
+
                 const formData = new URLSearchParams();
                 formData.append('name', newPerson.name);
                 formData.append('birthdate', formattedBirthdate);
@@ -596,21 +596,21 @@ useEffect(() => {
                 if (newRelationship.fid) formData.append('fid', newRelationship.fid);
                 if (newRelationship.mid) formData.append('mid', newRelationship.mid);
                 if (newRelationship.pid) formData.append('pid', newRelationship.pid);
-    
+
                 console.log('Form Data for Main Tree:', formData.toString());
-    
+
                 await axios.post('/demo/addFamilyMember', formData, {
                     headers: {
                         Authorization: `Bearer ${user.token}`,
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                 });
-    
+
                 setMessage('Success: Member added to the main tree.');
                 fetchFamilyMembers(); // Refresh the tree
             } else if (collaborationRole === 'Editor') {
                 console.log('Editor Role: Submitting suggested edit.');
-    
+
                 // Generate the suggested edits payload
                 const payload = new URLSearchParams({
                     memberId: '', // Omit if creating a new member
@@ -619,24 +619,24 @@ useEffect(() => {
                     oldValue: '', // Leave empty for new entries
                     newValue: newPerson.name, // Example of name edit
                 });
-    
+
                 console.log('Payload for Suggested Edit:', payload.toString());
-    
+
                 const response = await axios.post('/demo/suggestedEdits/create', payload, {
                     headers: {
                         Authorization: `Bearer ${user.token}`,
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                 });
-    
+
                 console.log('Suggested Edit Response:', response.data);
-    
+
                 setMessage('Your edit has been submitted for approval.');
             } else {
                 console.warn('Unauthorized Role: User does not have permission to add members.');
                 setMessage('You do not have permission to add members.');
             }
-    
+
             // Reset form and close modal
             setNewPerson({
                 name: '',
@@ -653,7 +653,7 @@ useEffect(() => {
             setMessage('Error: Unable to submit your changes.');
         }
     };
-    
+
 
 
     const onClose = () => {
@@ -694,10 +694,10 @@ useEffect(() => {
                         pid: updatedMember.pid,
                     }),
                 });
-    
+
                 console.log("Submitting suggested edit:", payload.toString());
                 closeEditModal(); // Close the modal
-    
+
                 const response = await axios.post(
                     "/demo/suggestedEdits/create",
                     payload,
@@ -708,7 +708,7 @@ useEffect(() => {
                         },
                     }
                 );
-    
+
                 if (response.data === "Suggested Edit Created Successfully") {
                     console.log("Suggested edit created successfully:", response.data);
                     setMessage("Success: Your suggested edit has been submitted for approval.");
@@ -720,16 +720,16 @@ useEffect(() => {
                 // Owner: Directly update the member
                 const payload = new URLSearchParams();
                 payload.append("memberId", updatedMember.memberId); // Required parameter
-    
+
                 if (updatedMember.name) payload.append("name", updatedMember.name);
-    
+
                 if (updatedMember.birthdate) {
                     const formattedBirthdate = new Date(updatedMember.birthdate)
                         .toISOString()
                         .split("T")[0]; // Format to yyyy-MM-dd
                     payload.append("birthdate", formattedBirthdate);
                 }
-    
+
                 if (updatedMember.gender) {
                     // Capitalize the first letter of gender
                     const gender =
@@ -737,22 +737,22 @@ useEffect(() => {
                         updatedMember.gender.slice(1).toLowerCase();
                     payload.append("gender", gender);
                 }
-    
+
                 if (updatedMember.deathdate) {
                     const formattedDeathdate = new Date(updatedMember.deathdate)
                         .toISOString()
                         .split("T")[0];
                     payload.append("deathdate", formattedDeathdate);
                 }
-    
+
                 if (updatedMember.additionalInfo) payload.append("additionalInfo", updatedMember.additionalInfo);
-    
+
                 if (updatedMember.fid) payload.append("fid", updatedMember.fid);
                 if (updatedMember.mid) payload.append("mid", updatedMember.mid);
                 if (updatedMember.pid) payload.append("pid", updatedMember.pid.join(",")); // Join multiple partner IDs into a string
-    
+
                 console.log("Submitting direct edit:", payload.toString());
-    
+
                 const response = await axios.post(
                     "/demo/editFamilyMember",
                     payload,
@@ -764,7 +764,7 @@ useEffect(() => {
                         },
                     }
                 );
-    
+
                 if (response.data === "Family Member Updated Successfully") {
                     console.log("Direct edit successful:", response.data);
                     setMessage("Success: Individual and relationships updated.");
@@ -780,7 +780,7 @@ useEffect(() => {
             alert("Failed to save changes. Please try again.");
         }
     };
-    
+
     const deleteMember = async (memberId) => {
         try {
             await axios.post(
@@ -800,39 +800,39 @@ useEffect(() => {
     };
     const handleEditNode = (nodeId) => {
         const selectedNode = individuals.find((person) => person.memberId === nodeId);
-    
+
         if (selectedNode) {
             setSelectedMember(selectedNode); // Set the selected member for editing
             setIsEditModalOpen(true); // Open the custom modal
         }
     };
-    
-    
+
+
     return (
         <div className="tree-page-container">
             {/* Top Navigation Bar */}
-     <div>
+            <div>
                 {/* Message Display */}
                 {message && (
-  <div
-    className="custom-alert"
-    style={{
-      "--bg-color": message.includes("Success") ? "#eafaf1" : "#ffecec",
-      "--border-color": message.includes("Success") ? "#8bc34a" : "#f44336",
-      "--text-color": message.includes("Success") ? "#4caf50" : "#f44336",
-      "--icon-bg": message.includes("Success") ? "#d9f2e6" : "#ffe6e6",
-      "--icon-color": message.includes("Success") ? "#4caf50" : "#f44336",
-    }}
-  >
-    <div className="icon">
-      {message.includes("Success") ? "✓" : "✕"}
-    </div>
-    <span>{message}</span>
-    <button className="close-btn" onClick={() => setMessage("")}>
-      ✕
-    </button>
-  </div>
-)}
+                    <div
+                        className="custom-alert"
+                        style={{
+                            "--bg-color": message.includes("Success") ? "#eafaf1" : "#ffecec",
+                            "--border-color": message.includes("Success") ? "#8bc34a" : "#f44336",
+                            "--text-color": message.includes("Success") ? "#4caf50" : "#f44336",
+                            "--icon-bg": message.includes("Success") ? "#d9f2e6" : "#ffe6e6",
+                            "--icon-color": message.includes("Success") ? "#4caf50" : "#f44336",
+                        }}
+                    >
+                        <div className="icon">
+                            {message.includes("Success") ? "✓" : "✕"}
+                        </div>
+                        <span>{message}</span>
+                        <button className="close-btn" onClick={() => setMessage("")}>
+                            ✕
+                        </button>
+                    </div>
+                )}
             </div>
             {/* Main Content */}
             <div
@@ -843,41 +843,42 @@ useEffect(() => {
                     height: '100vh',
                     overflow: 'hidden',
                 }}
-                >
-                 <div>
+            >
+                <div>
                     <TreeActionBar
-  treeName={treeName}
-  isPublic={isPublic}
-  setPrivacy={setIsPublic} // Pass the state updater directly
-  currentURL={currentURL}
-  viewOnly={viewOnly}
-  treeId={treeId}
-  userToken={user.token} // Pass user token for authorization
-  userId={userId} // Replace `currentUser.id` with your app's user ID logic
-  setInviteModalOpen={setIsInviteModalOpen} // Pass modal state updater
-  setInviteMessage={setInviteMessage} // Pass message state updater
-  inviteEmail={inviteEmail}
-  setInviteEmail={setInviteEmail}
-/>
-<div  >
-                <FamilyTreePageHeader 
-                username={username} 
-                currentTreePath={`/tree/${treeName}`} 
-                />
+                        treeName={treeName}
+                        isPublic={isPublic}
+                        setPrivacy={setIsPublic} // Pass the state updater directly
+                        currentURL={currentURL}
+                        viewOnly={viewOnly}
+                        treeId={treeId}
+                        userToken={user.token} // Pass user token for authorization
+                        userId={userId} // Replace `currentUser.id` with your app's user ID logic
+                        setInviteModalOpen={setIsInviteModalOpen} // Pass modal state updater
+                        setInviteMessage={setInviteMessage} // Pass message state updater
+                        inviteEmail={inviteEmail}
+                        setInviteEmail={setInviteEmail}
+                    />
+                    <div  >
+                        <FamilyTreePageHeader
+                            username={username}
+                            userId={userId}
+                            currentTreePath={`/tree/${treeName}`}
+                        />
+                    </div>
+                    {isInviteModalOpen && (
+                        <InviteCollaboratorModal
+                            sendInvite={sendInvite}
+                            onClose={closeInviteModal}
+                            inviteMessage={inviteMessage}
+                            inviteEmail={inviteEmail}
+                            setInviteEmail={setInviteEmail}
+                        />
+                    )}
                 </div>
-    {isInviteModalOpen && (
-        <InviteCollaboratorModal
-            sendInvite={sendInvite}
-            onClose={closeInviteModal}
-            inviteMessage={inviteMessage}
-            inviteEmail={inviteEmail}
-            setInviteEmail={setInviteEmail}
-        />
-    )}
-</div>
                 {/* Tree View Section */}
                 <div className="tree-view-section" style={{ position: "relative", width: "100%", height: "600px" }}>
-    
+
                     {/* Number of People in Top-Left */}
                     {individuals.length > 0 && (
                         <div
@@ -896,68 +897,68 @@ useEffect(() => {
                             <span>{individuals.length} of {individuals.length} people</span>
                         </div>
                     )}
-    
-<div
-    ref={treeContainerRef}
-    className="tree-container"
-    style={{ width: "100%", height: "100%" }}
-></div>
-{collaborationRole === 'Owner' && suggestedEdits.length > 0 && (
-    <div className="suggested-edits">
-        <h3>Suggested Edits</h3>
-        <table className="edits-table">
-            <thead>
-                <tr>
-                    <th>Suggested By</th>
-                    <th>Field</th>
-                    <th>Old Value</th>
-                    <th>New Value</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {suggestedEdits.map((edit) => (
-                    <tr key={edit.suggestionId}>
-                        <td>{edit.suggestedBy.username}</td>
-                        <td>{edit.fieldName}</td>
-                        <td>{edit.oldValue || 'N/A'}</td>
-                        <td>{edit.newValue}</td>
-                        <td>
-                            <button
-                                className="approve-btn"
-                                onClick={() => approveEdit(edit.suggestionId)}
-                            >
-                                Approve
-                            </button>
-                            <button
-                                className="reject-btn"
-                                onClick={() => rejectEdit(edit.suggestionId)}
-                            >
-                                Reject
-                            </button>
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    </div>
-)}
+
+                    <div
+                        ref={treeContainerRef}
+                        className="tree-container"
+                        style={{ width: "100%", height: "100%" }}
+                    ></div>
+                    {collaborationRole === 'Owner' && suggestedEdits.length > 0 && (
+                        <div className="suggested-edits">
+                            <h3>Suggested Edits</h3>
+                            <table className="edits-table">
+                                <thead>
+                                <tr>
+                                    <th>Suggested By</th>
+                                    <th>Field</th>
+                                    <th>Old Value</th>
+                                    <th>New Value</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {suggestedEdits.map((edit) => (
+                                    <tr key={edit.suggestionId}>
+                                        <td>{edit.suggestedBy.username}</td>
+                                        <td>{edit.fieldName}</td>
+                                        <td>{edit.oldValue || 'N/A'}</td>
+                                        <td>{edit.newValue}</td>
+                                        <td>
+                                            <button
+                                                className="approve-btn"
+                                                onClick={() => approveEdit(edit.suggestionId)}
+                                            >
+                                                Approve
+                                            </button>
+                                            <button
+                                                className="reject-btn"
+                                                onClick={() => rejectEdit(edit.suggestionId)}
+                                            >
+                                                Reject
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
 
 
 
 
-<EditModal
-    isOpen={isEditModalOpen}
-    member={selectedMember}
-    onClose={closeEditModal}
-    onSave={saveMemberChanges}
-    onDelete={deleteMember}
-    onAddAttachment={(memberId) => {
-        setSelectedMemberId(memberId);
-        setIsAttachmentModalOpen(true);
-    }}
-    individuals={individuals} // Pass the list of individuals for relationship options
-/>
+                    <EditModal
+                        isOpen={isEditModalOpen}
+                        member={selectedMember}
+                        onClose={closeEditModal}
+                        onSave={saveMemberChanges}
+                        onDelete={deleteMember}
+                        onAddAttachment={(memberId) => {
+                            setSelectedMemberId(memberId);
+                            setIsAttachmentModalOpen(true);
+                        }}
+                        individuals={individuals} // Pass the list of individuals for relationship options
+                    />
 
 
                     {/* Welcome Message */}
@@ -972,19 +973,19 @@ useEffect(() => {
                     )}
                 </div>
             </div>
-    
+
             {/* Floating Add Button */}
             {individuals.length > 0 && !isModalOpen && !isAttachmentsPersonModalOpen &&!isEditModalOpen && !isAttachmentModalOpen && collaborationRole  === 'Owner' && (
-    <button
-        className="floating-add-button"
-        onClick={openModal}
-        title="Add Individual"
-    >
-        +
-    </button>
-)}
-    
-    
+                <button
+                    className="floating-add-button"
+                    onClick={openModal}
+                    title="Add Individual"
+                >
+                    +
+                </button>
+            )}
+
+
             {/* Attachment Modal */}
             {isAttachmentModalOpen && (
                 <AttachmentModal
@@ -993,17 +994,17 @@ useEffect(() => {
                     userToken={user.token} // Pass the user ID of the uploader
                     onClose={closeAttachmentModal}
                     onUpload={(memberId, typeOfFile, file) => uploadAttachment(memberId, typeOfFile, file)}
-                    />
+                />
             )}
-                        {isAttachmentsPersonModalOpen && (
+            {isAttachmentsPersonModalOpen && (
                 <AttachmentsPersonModal
-                isOpen={isAttachmentsPersonModalOpen}
-                attachments={attachments}
-                onClose={closeAttachmentsPersonModal}
-              />
+                    isOpen={isAttachmentsPersonModalOpen}
+                    attachments={attachments}
+                    onClose={closeAttachmentsPersonModal}
+                />
             )}
-            
-    
+
+
             {/* Add Person Modal */}
             {isModalOpen && (
                 <AddPersonModal
