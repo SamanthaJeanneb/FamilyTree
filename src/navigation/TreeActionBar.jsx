@@ -98,9 +98,32 @@ const TreeActionBar = ({
     }
   }, [treeId, userId]);
 
-  const togglePrivacy = () => {
-    setPrivacy(!isPublic);
+  const togglePrivacy = async () => {
+    try {
+      const newPrivacySetting = isPublic ? 'Private' : 'Public';
+  
+      const response = await axios.post(
+        '/demo/updateFamilyTree',
+        null, 
+        {
+          params: {
+            treeId,
+            privacySetting: newPrivacySetting,
+          },
+          headers: { Authorization: `Bearer ${userToken}` },
+        }
+      );
+  
+      if (response.data === 'Family Tree Updated Successfully') {
+        setPrivacy(!isPublic); 
+      } else {
+        console.error('Failed to update privacy setting:', response.data);
+      }
+    } catch (error) {
+      console.error('Error updating privacy setting:', error.message);
+    }
   };
+  
 
   const handleMerge = async () => {
     if (!selectedMergeTree) {
