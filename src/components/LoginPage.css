@@ -14,6 +14,20 @@
   align-items: center;
   padding: 30px;
 }
+.form-control {
+
+  border: 1px solid rgb(0, 0, 0); /* Optional: white border */
+  border-radius: 5px; /* Smooth corners */
+}
+
+.form-control::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Makes the calendar icon white */
+}
+
+.form-control:focus {
+  outline: none; /* Remove outline */
+  box-shadow: 0 0 5px white; /* Optional: white glow when focused */
+}
 
 .login-logo {
   height: 12vh; 
