@@ -151,47 +151,39 @@ const MergeHandler = ({ mergeId, onClose }) => {
                   <>
                     <p>Please resolve all conflicts before finalizing the merge.</p>
                     <ul className="list-group">
-  {conflicts.map((conflict) => (
-    <li key={conflict.id} className="list-group-item">
-      <p><strong>Conflict ID:</strong> {conflict.id}</p>
-      <p><strong>Status:</strong> {conflict.status || "Unknown"}</p>
-
-      <div>
-        <p><strong>Member 1:</strong></p>
-        <p>Name: {conflict.member1Name || "N/A"}</p>
-        <p>Birthdate: {conflict.member1Birthdate || "N/A"}</p>
-        <p>Deathdate: {conflict.member1Deathdate || "N/A"}</p>
-        <p>Additional Info: {conflict.member1AdditionalInfo || "N/A"}</p>
-      </div>
-
-      <div>
-        <p><strong>Member 2:</strong></p>
-        <p>Name: {conflict.member2Name || "N/A"}</p>
-        <p>Birthdate: {conflict.member2Birthdate || "N/A"}</p>
-        <p>Deathdate: {conflict.member2Deathdate || "N/A"}</p>
-        <p>Additional Info: {conflict.member2AdditionalInfo || "N/A"}</p>
-      </div>
-
-      <div className="mt-2">
-        <button
-          className="btn btn-primary btn-sm me-2"
-          onClick={() => handleResolveConflict(conflict.id, true)}
-        >
-          Same Person
-        </button>
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={() => handleResolveConflict(conflict.id, false)}
-        >
-          Different Person
-        </button>
-      </div>
-    </li>
-  ))}
-</ul>
-
-
-
+                      {conflicts.map((conflict) => (
+                        <li key={conflict.conflictId} className="list-group-item">
+                          <p><strong>Conflict ID:</strong> {conflict.conflictId}</p>
+                          <p><strong>Status:</strong> {conflict.status}</p>
+                          <div>
+                            <p><strong>Member 1:</strong></p>
+                            <p>Name: {conflict.member1.name}</p>
+                            <p>Birthdate: {conflict.member1.birthdate}</p>
+                            <p>Additional Info: {conflict.member1.additionalInfo}</p>
+                          </div>
+                          <div>
+                            <p><strong>Member 2:</strong></p>
+                            <p>Name: {conflict.member2.name}</p>
+                            <p>Birthdate: {conflict.member2.birthdate}</p>
+                            <p>Additional Info: {conflict.member2.additionalInfo}</p>
+                          </div>
+                          <div className="mt-2">
+                            <button
+                              className="btn btn-primary btn-sm me-2"
+                              onClick={() => handleResolveConflict(conflict.conflictId, true)}
+                            >
+                              Same Person
+                            </button>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => handleResolveConflict(conflict.conflictId, false)}
+                            >
+                              Different Person
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </>
                 ) : (
                   <button className="btn btn-primary mt-3" onClick={handleFinalizeMerge}>
