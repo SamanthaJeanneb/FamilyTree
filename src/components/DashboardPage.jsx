@@ -24,17 +24,15 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     const [showCollaboratorTrees, setShowCollaboratorTrees] = useState(false);
     const [activeLink, setActiveLink] = useState("myTrees");
     const [mergeRequests, setMergeRequests] = useState([]);
-    
+
     const fetchCollaboratorTrees = () => {
         axios
             .get(`/demo/getCollaborationByUser?userId=${userId}`, { withCredentials: true })
             .then((response) => {
-                // Filter out owned trees and map to family trees
                 const familyTrees = response.data
-                    .filter(collaboration => !collaboration.owner) // Exclude owned trees
+                    .filter(collaboration => !collaboration.owner) 
                     .map(collaboration => collaboration.familyTree);
     
-                // Deduplicate trees by ID
                 setCollaboratorTrees((prevTrees) => {
                     const allTrees = [...prevTrees, ...familyTrees];
                     const uniqueTrees = Array.from(new Map(allTrees.map(tree => [tree.id, tree])).values());
@@ -48,20 +46,31 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
             });
     };
     
+    const handleMergeNotificationClick = async (notification) => {
+        try {
+            console.log("Notification clicked:", notification); 
+            const mergeId = parseInt(notification.url, 10); 
+            if (!isNaN(mergeId)) {
+                console.log("Extracted mergeId:", mergeId); 
+                setMergeId(mergeId);
+                setShowMergeHandler(true); 
     
+                await axios.delete(`/demo/notifications/deleteById`, {
+                    params: { notificationId: notification.id },
+                    withCredentials: true,
+                });
     
-    const handleMergeNotificationClick = (notification) => {
-      console.log("Notification clicked:", notification); // Log the entire notification object
-      const mergeId = parseInt(notification.url, 10); // Extract mergeId from URL
-  
-      if (!isNaN(mergeId)) {
-          console.log("Extracted mergeId:", mergeId); // Log the extracted mergeId
-          setMergeId(mergeId); // Set the mergeId
-          setShowMergeHandler(true); // Show MergeHandler
-      } else {
-          console.error("Invalid mergeId in notification URL:", notification.url); // Log an error with the invalid URL
-      }
-  };
+                setNotifications((prev) =>
+                    prev.filter((notif) => notif.id !== notification.id)
+                );
+            } else {
+                console.error("Invalid mergeId in notification URL:", notification.url); // Log an error with the invalid URL
+            }
+        } catch (error) {
+            console.error("Error handling merge notification click:", error);
+        }
+    };
+    
   
 
   const closeMergeHandler = () => {
@@ -86,73 +95,64 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     }
 
     const handleNotificationClick = async (notification) => {
-      try {
-          if (notification.message.startsWith("A merge")) {
-              // Handle merge request using stored mergeRequestId
-              const mergeRequest = mergeRequests.find(
-                  (request) => request.treeName === notification.treeId.treeName
-              );
-  
-              if (mergeRequest) {
-                  const action = notification.action || "accept";
-                  const url =
-                      action === "accept"
-                          ? `/demo/acceptMergeRequest?mergeRequestId=${mergeRequest.id}`
-                          : `/demo/declineMergeRequest?mergeRequestId=${mergeRequest.id}`;
-  
-                  await axios.post(url, {}, { withCredentials: true });
-                  setMessage(`Merge request ${action}ed successfully.`);
-              } else {
-                  setMessage("Merge request not found.");
-              }
-  
-              // Delete the notification after opening the merge handler
-              await axios.delete(`/demo/notifications/delete`, {
-                  params: { userId, notificationId: notification.id },
-                  withCredentials: true,
-              });
-  
-              setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
-          } else if (notification.message.startsWith("A new")) {
-              // Handle suggested edits
-              navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
-                  state: { treeId: notification.treeId.id, userId },
-              });
-          } else if (notification.message.startsWith("You")) {
-              // Handle collaboration invite
-              const action = notification.action || "accept";
-              const url =
-                  action === "accept"
-                      ? `/demo/acceptCollaboration?notificationId=${notification.id}&userId=${userId}`
-                      : `/demo/declineCollaboration?notificationId=${notification.id}&userId=${userId}`;
-  
-              const response = await axios.post(url, {}, { withCredentials: true });
-              setMessage(`Collaboration ${action}ed successfully.`);
-              if (response.data.includes("accepted") || response.data.includes("declined")) {
-                  setMessage(`Collaboration ${action}ed successfully.`);
-              }
-              // Navigate to the accepted tree
-              if (action === "accept" && notification.treeId?.treeName) {
-                  navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
-                      state: { treeId: notification.treeId.id, userId },
-                  });
-              }
-          }
-  
-          // Delete the notification (fallback for other cases)
-          await axios.delete(`/demo/notifications/delete`, {
-              params: { userId, notificationId: notification.id },
-              withCredentials: true,
-          });
-  
-          setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
-      } catch (error) {
-          console.error("Error handling notification:", error);
-          setMessage(`Error: ${error.message}`);
-      }
-  };
-  
-
+        try {
+            let actionUrl = null;
+            let messagePrefix = "";
+    
+            if (notification.message.startsWith("A merge")) {
+                
+                const mergeRequest = mergeRequests.find(
+                    (request) => request.treeName === notification.treeId.treeName
+                );
+    
+                if (mergeRequest) {
+                    const action = notification.action || "accept";
+                    actionUrl =
+                        action === "accept"
+                            ? `/demo/acceptMergeRequest?mergeRequestId=${mergeRequest.id}`
+                            : `/demo/declineMergeRequest?mergeRequestId=${mergeRequest.id}`;
+                    messagePrefix = `Merge request ${action}ed successfully.`;
+                } else {
+                    setMessage("Merge request not found.");
+                    return;
+                }
+            } else if (notification.message.startsWith("A new")) {
+                navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
+                    state: { treeId: notification.treeId.id, userId },
+                });
+                messagePrefix = "Navigating to suggested edits.";
+            } else if (notification.message.startsWith("You")) {
+                const action = notification.action || "accept";
+                actionUrl =
+                    action === "accept"
+                        ? `/demo/acceptCollaboration?notificationId=${notification.id}&userId=${userId}`
+                        : `/demo/declineCollaboration?notificationId=${notification.id}&userId=${userId}`;
+                messagePrefix = `Collaboration ${action}ed successfully.`;
+    
+                if (action === "accept" && notification.treeId?.treeName) {
+                    navigate(`/tree/${encodeURIComponent(notification.treeId.treeName)}`, {
+                        state: { treeId: notification.treeId.id, userId },
+                    });
+                }
+            }
+    
+            if (actionUrl) {
+                await axios.post(actionUrl, {}, { withCredentials: true });
+                setMessage(messagePrefix);
+            }
+    
+            await axios.delete(`/demo/notifications/deleteById`, {
+                params: { notificationId: notification.id },
+                withCredentials: true,
+            });
+                setNotifications((prev) => prev.filter((notif) => notif.id !== notification.id));
+            setMessage("Notification handled and deleted successfully.");
+        } catch (error) {
+            console.error("Error handling notification:", error);
+            setMessage(`Error: ${error.message}`);
+        }
+    };
+    
 
     useEffect(() => {
         const authenticateAndFetchData = () => {
