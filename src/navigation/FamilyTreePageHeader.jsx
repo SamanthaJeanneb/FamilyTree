@@ -124,12 +124,7 @@ const FamilyTreePageHeader = ({ username, userId }) => {
               </span>
                         </li>
                         <li className="nav-item">
-              <span
-                  className={`nav-link ${isAboutActive ? 'active' : ''}`}
-                  onClick={() => navigate('/about')}
-              >
-                About
-              </span>
+
                         </li>
                     </ul>
                 </div>

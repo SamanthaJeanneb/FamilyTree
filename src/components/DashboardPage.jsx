@@ -24,20 +24,32 @@ const DashboardPage = ({ isAuthenticated, setIsAuthenticated, setUser, user }) =
     const [showCollaboratorTrees, setShowCollaboratorTrees] = useState(false);
     const [activeLink, setActiveLink] = useState("myTrees");
     const [mergeRequests, setMergeRequests] = useState([]);
-
-
+    
     const fetchCollaboratorTrees = () => {
         axios
             .get(`/demo/getCollaborationByUser?userId=${userId}`, { withCredentials: true })
             .then((response) => {
-                const familyTrees = response.data.map((collaboration) => collaboration.familyTree);
-                setCollaboratorTrees((prevTrees) => [...prevTrees, ...familyTrees]);
-                setShowCollaboratorTrees(true); // Show collaborator trees when data is fetched
+                // Filter out owned trees and map to family trees
+                const familyTrees = response.data
+                    .filter(collaboration => !collaboration.owner) // Exclude owned trees
+                    .map(collaboration => collaboration.familyTree);
+    
+                // Deduplicate trees by ID
+                setCollaboratorTrees((prevTrees) => {
+                    const allTrees = [...prevTrees, ...familyTrees];
+                    const uniqueTrees = Array.from(new Map(allTrees.map(tree => [tree.id, tree])).values());
+                    return uniqueTrees;
+                });
+    
+                setShowCollaboratorTrees(true);
             })
             .catch((error) => {
                 console.error('Error fetching collaborator trees:', error);
             });
     };
+    
+    
+    
     const handleMergeNotificationClick = (notification) => {
       console.log("Notification clicked:", notification); // Log the entire notification object
       const mergeId = parseInt(notification.url, 10); // Extract mergeId from URL
