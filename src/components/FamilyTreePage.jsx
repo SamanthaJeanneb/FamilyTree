@@ -100,7 +100,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     
             const link = document.createElement("a");
             link.href = screenshotDataUrl;
-            link.download = `Tree_${treeName}.png`;
+            link.download = `${treeName}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link); 
@@ -594,7 +594,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         setInviteEmail('');
         setInviteMessage('');
     }
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         e.preventDefault();
     
         const formattedBirthdate = newPerson.birthdate
@@ -616,62 +616,69 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         formData.append('isPrivate', newPerson.isPrivate.toString());
         if (newRelationship.fid) formData.append('fid', newRelationship.fid);
         if (newRelationship.mid) formData.append('mid', newRelationship.mid);
-        if (newRelationship.pid) formData.append('pid', newRelationship.pid);
-        console.log('Submitting form with data:', {
-        name: newPerson.name,
-        birthdate: formattedBirthdate,
-        gender: newPerson.sex,
-        userId,
-        treeId,
-        addedById: userId,
-        deathdate: formattedDeathdate,
-        additionalInfo: newPerson.additionalInfo,
-        isPrivate: newPerson.isPrivate,
-        fid: newRelationship.fid,
-        mid: newRelationship.mid,
-        pid: newRelationship.pid,
-    });
-        axios
-            .post('/demo/addFamilyMember', formData, {
+    
+        try {
+            // Add the new person
+            const response = await axios.post('/demo/addFamilyMember', formData, {
                 headers: {
                     Authorization: `Bearer ${user.token}`,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-            })
-            .then((response) => {
-                const memberId = response.data.memberId; // Assume backend returns the `memberId` of the newly added member
-                if (!memberId) {
-                    throw new Error('Member ID not returned by backend');
-                }
-    
-                // Fetch family members to update the tree
-                fetchFamilyMembers();
-    
-                // Reset form fields
-                setNewPerson({
-                    name: '',
-                    sex: 'Male',
-                    birthdate: '',
-                    deathdate: '',
-                    additionalInfo: '',
-                    isPrivate: false,
-                });
-                setNewRelationship({ fid: '', mid: '', pid: '' });
-    
-                // Close the add person modal    
-                // Open the attachment modal for the newly added member
-                setSelectedMemberId(memberId);
-                setIsAttachmentModalOpen(true);
-                if (!isAttachmentModalOpen) {
-                    fetchFamilyMembers(); // Refresh the tree
-                    closeModal(); 
-                    
-                }
-            })
-            .catch((error) => {
-                console.error('Error adding family member:', error);
             });
+    
+            const memberId = response.data.memberId;
+            if (!memberId) {
+                throw new Error('Member ID not returned by backend');
+            }
+    
+            // If both `fid` and `mid` are provided, make them partners
+            if (newRelationship.fid && newRelationship.mid) {
+                const updateParentRelationship = async (parentId, partnerId) => {
+                    const parent = individuals.find((ind) => ind.memberId === parentId);
+                    const updatedPids = parent?.pid ? [...parent.pid, partnerId] : [partnerId];
+    
+                    const updatePayload = new URLSearchParams();
+                    updatePayload.append('memberId', parentId);
+                    updatePayload.append('pid', updatedPids.join(',')); // Update `pid` with the new partner ID
+    
+                    await axios.post('/demo/editFamilyMember', updatePayload, {
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                    });
+                };
+    
+                // Update relationships for both parents
+                await Promise.all([
+                    updateParentRelationship(newRelationship.fid, newRelationship.mid),
+                    updateParentRelationship(newRelationship.mid, newRelationship.fid),
+                ]);
+            }
+    
+            // Refresh the tree
+            fetchFamilyMembers();
+            closeModal();
+    
+            // Reset form fields
+            setNewPerson({
+                name: '',
+                sex: 'Male',
+                birthdate: '',
+                deathdate: '',
+                additionalInfo: '',
+                isPrivate: false,
+            });
+            setNewRelationship({ fid: '', mid: '', pid: '' });
+    
+            // Open the attachment modal for the newly added member
+            setSelectedMemberId(memberId);
+            setIsAttachmentModalOpen(true);
+        } catch (error) {
+            console.error('Error adding family member or updating relationships:', error);
+        }
     };
+    
 
 
     const onClose = () => {
