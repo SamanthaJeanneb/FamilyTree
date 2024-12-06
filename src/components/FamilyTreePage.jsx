@@ -100,7 +100,7 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
     
             const link = document.createElement("a");
             link.href = screenshotDataUrl;
-            link.download = `${treeName}.png`;
+            link.download = `Tree_${treeName}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link); 
@@ -616,9 +616,9 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         formData.append('isPrivate', newPerson.isPrivate.toString());
         if (newRelationship.fid) formData.append('fid', newRelationship.fid);
         if (newRelationship.mid) formData.append('mid', newRelationship.mid);
+        if (newRelationship.pid) formData.append('pid', newRelationship.pid);
     
         try {
-            // Add the new person
             const response = await axios.post('/demo/addFamilyMember', formData, {
                 headers: {
                     Authorization: `Bearer ${user.token}`,
@@ -631,15 +631,15 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 throw new Error('Member ID not returned by backend');
             }
     
-            // If both `fid` and `mid` are provided, make them partners
+            // Update parent relationships if both fid and mid are provided
             if (newRelationship.fid && newRelationship.mid) {
                 const updateParentRelationship = async (parentId, partnerId) => {
                     const parent = individuals.find((ind) => ind.memberId === parentId);
-                    const updatedPids = parent?.pid ? [...parent.pid, partnerId] : [partnerId];
+                    const updatedPids = parent?.pid ? [...new Set([...parent.pid, partnerId])] : [partnerId];
     
                     const updatePayload = new URLSearchParams();
                     updatePayload.append('memberId', parentId);
-                    updatePayload.append('pid', updatedPids.join(',')); // Update `pid` with the new partner ID
+                    updatePayload.append('pid', updatedPids.join(',')); // Update partner IDs
     
                     await axios.post('/demo/editFamilyMember', updatePayload, {
                         headers: {
@@ -649,18 +649,40 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                     });
                 };
     
-                // Update relationships for both parents
                 await Promise.all([
                     updateParentRelationship(newRelationship.fid, newRelationship.mid),
                     updateParentRelationship(newRelationship.mid, newRelationship.fid),
                 ]);
             }
     
-            // Refresh the tree
+            // Update bidirectional partner relationships if a partner is selected
+            if (newRelationship.pid) {
+                const updatePartnerRelationship = async (personId, partnerId) => {
+                    const person = individuals.find((ind) => ind.memberId === personId);
+                    const updatedPids = person?.pid ? [...new Set([...person.pid, partnerId])] : [partnerId];
+    
+                    const updatePayload = new URLSearchParams();
+                    updatePayload.append('memberId', personId);
+                    updatePayload.append('pid', updatedPids.join(',')); // Update partner IDs
+    
+                    await axios.post('/demo/editFamilyMember', updatePayload, {
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                    });
+                };
+    
+                await Promise.all([
+                    updatePartnerRelationship(memberId, newRelationship.pid), // Add partner to new person
+                    updatePartnerRelationship(newRelationship.pid, memberId), // Add new person to partner
+                ]);
+            }
+    
+            // Refresh the tree and reset the form
             fetchFamilyMembers();
             closeModal();
     
-            // Reset form fields
             setNewPerson({
                 name: '',
                 sex: 'Male',
@@ -679,7 +701,6 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
         }
     };
     
-
 
     const onClose = () => {
         setIsInviteModalOpen(false);
