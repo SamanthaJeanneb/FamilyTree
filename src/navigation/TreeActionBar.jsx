@@ -11,6 +11,7 @@ const TreeActionBar = ({
   treeId,
   userToken,
   userId,
+  captureScreenshot,
   setInviteModalOpen,
 }) => {
   const [isSettingsDropdownVisible, setIsSettingsDropdownVisible] = useState(false);
@@ -214,6 +215,12 @@ const TreeActionBar = ({
                         {isPublic ? 'Public' : 'Private'}
                       </label>
                     </div>
+                    <button
+                                            className="btn btn-primary btn-sm w-100 mt-2"
+                                            onClick={captureScreenshot} // Call the function
+                                        >
+                                            Capture Screenshot
+                                        </button>
                     {/* Share Link */}
                     <button
                       className="btn btn-secondary btn-sm w-100"

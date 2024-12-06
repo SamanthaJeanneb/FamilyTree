@@ -12,6 +12,7 @@ import AddPersonModal from './modals/AddPersonModal';
 import TreeActionBar from '../navigation/TreeActionBar.jsx';
 import EditModal from './modals/EditModal.jsx';
 import AttachmentsPersonModal from "./modals/AttachmentsPersonModal.jsx";
+import html2canvas from "html2canvas"; // Import html2canvas
 
 
 const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
@@ -82,6 +83,36 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
       </clipPath>
     `;
     }, []);
+    const captureScreenshot = async () => {
+        if (!treeContainerRef.current) {
+            console.error("Tree container not found.");
+            return;
+        }
+    
+        try {
+            const existingScreenshotKey = `treeImage_${treeId}`;
+            if (localStorage.getItem(existingScreenshotKey)) {
+                localStorage.removeItem(existingScreenshotKey);
+            }
+            const canvas = await html2canvas(treeContainerRef.current, { useCORS: true });
+            const screenshotDataUrl = canvas.toDataURL("image/png");
+            localStorage.setItem(existingScreenshotKey, screenshotDataUrl);
+    
+            const link = document.createElement("a");
+            link.href = screenshotDataUrl;
+            link.download = `Tree_${treeName}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link); 
+    
+            setMessage("Success: Tree screenshot captured, saved, and downloaded!");
+        } catch (error) {
+            console.error("Error capturing screenshot:", error);
+            setMessage("Error: Failed to capture screenshot.");
+        }
+    };
+    
+    
     const openAttachmentsPersonModal = async (memberId) => {
         try {
             const response = await axios.get("/demo/getAttachmentsForMember", {
@@ -832,20 +863,18 @@ const FamilyTreePage = ({ setIsAuthenticated, setUser, user }) => {
                 }}
             >
                 <div>
-                    <TreeActionBar
-                        treeName={treeName}
-                        isPublic={isPublic}
-                        setPrivacy={setIsPublic} // Pass the state updater directly
-                        currentURL={currentURL}
-                        viewOnly={viewOnly}
-                        treeId={treeId}
-                        userToken={user.token} // Pass user token for authorization
-                        userId={userId} // Replace `currentUser.id` with your app's user ID logic
-                        setInviteModalOpen={setIsInviteModalOpen} // Pass modal state updater
-                        setInviteMessage={setInviteMessage} // Pass message state updater
-                        inviteEmail={inviteEmail}
-                        setInviteEmail={setInviteEmail}
-                    />
+                <TreeActionBar
+                treeName={treeName}
+                isPublic={isPublic}
+                setPrivacy={setIsPublic}
+                currentURL={currentURL}
+                viewOnly={viewOnly}
+                treeId={treeId}
+                userToken={user.token}
+                userId={userId}
+                setInviteModalOpen={setIsInviteModalOpen}
+                captureScreenshot={captureScreenshot} // Pass the screenshot function
+            />
                     <div  >
                         <FamilyTreePageHeader
                             username={username}
