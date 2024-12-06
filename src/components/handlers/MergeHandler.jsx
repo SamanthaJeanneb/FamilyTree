@@ -19,18 +19,14 @@ const MergeHandler = ({ mergeId, onClose }) => {
           params: { mergeRequestId: mergeId },
         });
 
-        const { requesterTree, targetTree, initiator } = mergeResponse.data;
-
-        setMergeDetails({
-          mergeId,
-          requesterTreeId: requesterTree.id,
-          targetTreeId: targetTree.id,
-          initiatorUserId: initiator.id,
-        });
+        setMergeDetails(mergeResponse.data);
 
         // Fetch conflicts
         const conflictResponse = await axios.get('/demo/getMatches', {
-          params: { treeId1: requesterTree.id, treeId2: targetTree.id },
+          params: {
+            treeId1: mergeResponse.data.requesterTreeId,
+            treeId2: mergeResponse.data.targetTreeId,
+          },
         });
 
         setConflicts(conflictResponse.data || []);
@@ -120,9 +116,11 @@ const MergeHandler = ({ mergeId, onClose }) => {
                 <div className="card text-dark">
                   <div className="card-body">
                     <h5 className="card-title">Merge Request ID: {mergeId}</h5>
-                    <p className="card-text">Requester Tree ID: {mergeDetails.requesterTreeId}</p>
-                    <p className="card-text">Target Tree ID: {mergeDetails.targetTreeId}</p>
-                    <p className="card-text">Initiated by User ID: {mergeDetails.initiatorUserId}</p>
+                    <p><strong>Requester Tree:</strong> {mergeDetails?.requesterTreeName}</p>
+                    <p><strong>Requester Tree Owner:</strong> {mergeDetails?.requesterTreeOwnerUsername}</p>
+                    <p><strong>Target Tree:</strong> {mergeDetails?.targetTreeName}</p>
+                    <p><strong>Target Tree Owner:</strong> {mergeDetails?.targetTreeOwnerUsername}</p>
+                    <p><strong>Initiator:</strong> {mergeDetails?.initiatorUsername}</p>
                     <div className="d-flex gap-2">
                       <button className="btn btn-success" onClick={handleAcceptMerge}>
                         Accept
@@ -153,26 +151,47 @@ const MergeHandler = ({ mergeId, onClose }) => {
                   <>
                     <p>Please resolve all conflicts before finalizing the merge.</p>
                     <ul className="list-group">
-                      {conflicts.map((conflict) => (
-                        <li key={conflict.id} className="list-group-item">
-                          {conflict.description} - Conflict ID: {conflict.id}
-                          <div className="mt-2">
-                            <button
-                              className="btn btn-primary btn-sm me-2"
-                              onClick={() => handleResolveConflict(conflict.id, true)}
-                            >
-                              Same Person
-                            </button>
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              onClick={() => handleResolveConflict(conflict.id, false)}
-                            >
-                              Different Person
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+  {conflicts.map((conflict) => (
+    <li key={conflict.id} className="list-group-item">
+      <p><strong>Conflict ID:</strong> {conflict.id}</p>
+      <p><strong>Status:</strong> {conflict.status || "Unknown"}</p>
+
+      <div>
+        <p><strong>Member 1:</strong></p>
+        <p>Name: {conflict.member1Name || "N/A"}</p>
+        <p>Birthdate: {conflict.member1Birthdate || "N/A"}</p>
+        <p>Deathdate: {conflict.member1Deathdate || "N/A"}</p>
+        <p>Additional Info: {conflict.member1AdditionalInfo || "N/A"}</p>
+      </div>
+
+      <div>
+        <p><strong>Member 2:</strong></p>
+        <p>Name: {conflict.member2Name || "N/A"}</p>
+        <p>Birthdate: {conflict.member2Birthdate || "N/A"}</p>
+        <p>Deathdate: {conflict.member2Deathdate || "N/A"}</p>
+        <p>Additional Info: {conflict.member2AdditionalInfo || "N/A"}</p>
+      </div>
+
+      <div className="mt-2">
+        <button
+          className="btn btn-primary btn-sm me-2"
+          onClick={() => handleResolveConflict(conflict.id, true)}
+        >
+          Same Person
+        </button>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => handleResolveConflict(conflict.id, false)}
+        >
+          Different Person
+        </button>
+      </div>
+    </li>
+  ))}
+</ul>
+
+
+
                   </>
                 ) : (
                   <button className="btn btn-primary mt-3" onClick={handleFinalizeMerge}>
