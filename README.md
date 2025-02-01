@@ -1,8 +1,15 @@
-# React + Vite
+# Family Tree Project  
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview  
+This project is a web application for creating and visualizing a family tree. It allows users to add, edit, and explore family relationships while maintaining a structured database. Authentication is handled using Google OAuth for secure login.  
 
-Currently, two official plugins are available:
+## Tech Stack  
+- **Spring Boot**: Backend framework for handling business logic and API endpoints.  
+- **MySQL**: Relational database to store family member details and relationships.  
+- **Google OAuth**: Authentication system to allow users to log in securely using their Google accounts.  
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features  
+- **User Authentication**: Secure login via Google OAuth.  
+- **Family Tree Management**: Add, update, and delete family members.  
+- **Relationship Mapping**: Define parent-child and sibling relationships.  
+- **Interactive Visualization**: Display the family tree dynamically.  
